@@ -1,0 +1,7 @@
+{
+    "ipfsGateway": "https://cloudflare-ipfs.com/ipfs/",
+    "blockExplorer":"https://testnet.algoexplorer.io/",
+    "algod":"https://testnet.algoexplorerapi.io",
+    "network":"TestNet",
+    "storageToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJkaWQ6ZXRocjoweDlCZUM2YjUyQ0MyNkE5YjE2QTVmZDRBQzdENDAzOTNkZTdiOTQ0RWYiLCJpc3MiOiJ3ZWIzLXN0b3JhZ2UiLCJpYXQiOjE2MzI4MDI2ODgxMjQsIm5hbWUiOiJuZnQtZ2FsbGVyeSJ9.4KXlYbOqAFq5b9MduuBPD0B9-UZcllaStQ3eFoEP9WQ"
+}
