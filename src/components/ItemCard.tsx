@@ -3,6 +3,7 @@ import "react-tagsinput/react-tagsinput.css";
 import { useEffect, useState } from "react";
 import { NFT } from "../lib/nft";
 import TagsInput from "react-tagsinput";
+import LazyLoad from "react-lazyload";
 
 type ItemCardProps = {
   nft: NFT;
@@ -52,29 +53,34 @@ const ItemCard = (props: ItemCardProps) => {
   const imageURL = props.nft.imgURL();
 
   return (
-    <div className="ml-2 shadow-lg w-md rounded-t bg-indigo-700" style={{ height: "min-content" }}>
-      {/* Image */}
-      <div className="mt-2 p-3">
-        <img src={imageURL} alt={name} className="object-fill w-full" />
-      </div>
-      {/* Text */}
-      <div className="flex content-center p-2 h-20">
-        <div className="flex flex-col justify-around ml-3 pb-3">
-          <p
-            className="font-sans text-lg font-bold text-white"
-            style={{ fontFamily: "'Syne', sans-serif" }}
-          >
-            {name}
-          </p>
-          <span className="inline-flex">
-            <p className="anaheim text-white mr-1 text-lg font-bold">Owner: </p>
-            <p className="anaheim text-white text-lg italic">{owner}</p>
-          </span>
+    <LazyLoad height={400}>
+      <div
+        className="ml-2 mb-10 shadow-lg w-md rounded-t bg-indigo-700"
+        style={{ height: "min-content" }}
+      >
+        {/* Image */}
+        <div className="mt-2 p-3">
+          <img src={imageURL} alt={name} className="object-fill w-full" />
         </div>
+        {/* Text */}
+        <div className="flex content-center p-2 h-20">
+          <div className="flex flex-col justify-around ml-3 pb-3">
+            <p
+              className="font-sans text-lg font-bold text-white"
+              style={{ fontFamily: "'Syne', sans-serif" }}
+            >
+              {name}
+            </p>
+            <span className="inline-flex">
+              <p className="anaheim text-white mr-1 text-lg font-bold">Owner: </p>
+              <p className="anaheim text-white text-lg italic">{owner}</p>
+            </span>
+          </div>
+        </div>
+        {/* Tags */}
+        <TagsInput value={tags} onChange={handleTagChange} />
       </div>
-      {/* Tags */}
-      <TagsInput value={tags} onChange={handleTagChange} />
-    </div>
+    </LazyLoad>
   );
 };
 

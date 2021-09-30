@@ -10,8 +10,11 @@ Current strategy:
             - Else download url
 
 TODO: Tags - overall functionality, Done
-TODO: Get IDs from local, lazy load new IDs, update if they differ, kinda done
+TODO: Get IDs from local, lazy load new IDs, update if they differ, kinda 
+
 
 TODO: Tags - Update filter tags after adding a new tag
+TODO: Load 10 new after scroll
 TODO: Context menu
 TODO: Atomic transfer - overall functionality
+TODO: 3 Columns

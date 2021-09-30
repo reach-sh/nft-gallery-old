@@ -5,7 +5,8 @@ import { getFromIPFS } from "./ipfs";
 const ARC3_SUFFIX = "@arc3";
 const METADATA_FILE = "metadata.json";
 
-export function resolveURL(url: string): string {
+export function resolveURL(url: string | undefined): string {
+  if (!url) return "-";
   const chunks = url.split("://");
 
   // give up

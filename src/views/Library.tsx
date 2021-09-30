@@ -1,18 +1,37 @@
 import { useContext, useEffect, useState } from "react";
 import ItemCard from "../components/ItemCard";
 import AppContext from "../context/appContext";
-import { getCollection, getCollectionFromTokens } from "../lib/algoHelpers";
+import { getAssetsOfAddress, getCollectionFromTokens, getDetailsOfAsset } from "../lib/algoHelpers";
 import { NFT } from "../lib/nft";
 
 import Loading from "../assets/Spinner.svg";
 import GhostCard from "../components/GhostCard";
+import { VIEWS } from "../constants";
+
+const getStorageItem = (f: string, def: string) => {
+  return JSON.parse(localStorage.getItem(f) ?? def);
+};
+const setStorageItem = (f: string, val: any, def: any) => {
+  localStorage.setItem(f, JSON.stringify(val) ?? def);
+};
 
 const Library = () => {
   const appContext = useContext(AppContext);
+
+  const [accs, setAccs] = useState<string[]>(getStorageItem("accounts", "[]"));
+
+  const [getNfts, setGetNfts] = useState<boolean>(false);
+
   const [nfts, setNfts] = useState<NFT[]>([]);
+
   const [fetched, setFetched] = useState<boolean>(false);
+  const [interrupt, setInterrupt] = useState<boolean>(false);
+
   const [expandFilter, setExpandFilter] = useState<boolean>(false);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
+
+  const [accForm, setAccForm] = useState("");
+  const handleAccForm = (e: any) => setAccForm(e.target.value);
 
   const switchSelectedTag = (tag: string) => {
     return !selectedTags.includes(tag)
@@ -22,6 +41,34 @@ const Library = () => {
 
   const switchExpandFilter = () => {
     setExpandFilter(!expandFilter);
+  };
+
+  const addAccount = () => {
+    // TODO: Check address if valid
+    setAccs((prevAccs) => [...prevAccs, accForm]);
+
+    const cacheAccounts: string[] = getStorageItem("accounts", "[]");
+    setStorageItem("accounts", [...cacheAccounts, accForm], []);
+
+    setAccForm("");
+  };
+
+  const removeAccount = (account: string) => {
+    setInterrupt(true);
+    setStorageItem("nfts", [], []);
+    setNfts([]);
+    setAccs((prevAccs) => prevAccs.filter((a) => a !== account));
+
+    const cacheAccounts: string[] = getStorageItem("accounts", "[]");
+    setStorageItem(
+      "accounts",
+      cacheAccounts.filter((a) => a !== account),
+      []
+    );
+  };
+
+  const goToStart = () => {
+    appContext.set("view", VIEWS.START);
   };
 
   const filterNfts = (): NFT[] => {
@@ -44,13 +91,34 @@ const Library = () => {
       setNfts(await getCollectionFromTokens(cachedNfts));
     };
 
-    const fetchNFTs = async () => {
-      const addrs = appContext.settings.addresses;
-      let fetchedNfts: NFT[] = [];
-      for (let i = 0; i < addrs.length; i++) {
-        fetchedNfts = [...fetchedNfts, ...(await getCollection(addrs[i]))];
+    const fetchAssets = async () => {
+      let fetchedAssets: any[] = [];
+      for (let i = 0; i < accs.length; i++) {
+        fetchedAssets = [...fetchedAssets, ...(await getAssetsOfAddress(accs[i]))];
       }
-      setNfts(fetchedNfts);
+      return fetchedAssets;
+    };
+
+    const fetchNfts = async (arr: any[]) => {
+      if (arr.length === 0) {
+        setFetched(true);
+        return;
+      }
+
+      setNfts([]);
+
+      let fetchedNfts: NFT[] = [];
+      for (let i = 0; i < arr.length; i++) {
+        if (interrupt) break;
+
+        const asset = arr[i];
+        const fetchedNft = await getDetailsOfAsset(asset);
+
+        setNfts((prevState) => {
+          return [...prevState, fetchedNft];
+        });
+        fetchedNfts = [...fetchedNfts, fetchedNft];
+      }
 
       const cacheMd = fetchedNfts.map((n: NFT) => ({
         [n.assetId]: {
@@ -62,24 +130,59 @@ const Library = () => {
         },
       }));
       localStorage.setItem("nfts", JSON.stringify(cacheMd));
+
       setFetched(true);
+      // setNfts((prevState) => [...prevState, ...fetchedNfts]);
     };
 
-    if (!fetched) {
-      getCachedNFTs().then(() => fetchNFTs());
+    setFetched(false);
+    getCachedNFTs()
+      .then(() => fetchAssets())
+      .then((assets) => fetchNfts(assets));
+
+    if (interrupt) {
+      setNfts([]);
+      setStorageItem("nfts", [], []);
+      setFetched(true);
+      setInterrupt(false);
     }
+
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [interrupt, accs]);
 
   return (
     <div className="h-full w-screen" style={{ backgroundColor: "#171717" }}>
-      <span className="py-10 pl-10 inline-flex">
-        <button onClick={() => window.location.reload()}>
+      <span className="py-10 pl-10 inline-flex w-full">
+        <button onClick={goToStart}>
           <span className="material-icons transform scale-150 align-middle mr-4 text-white">
             chevron_left
           </span>
         </button>
         <h1 className="syne text-5xl font-bold text-white">Your Collection</h1>
+        <div className="ml-auto flex flex-row">
+          <div className="px-4 ">
+            {accs.map((acc: string) => (
+              <button
+                onClick={() => removeAccount(acc)}
+                className="bg-indigo-700 text-white anaheim text-md rounded px-3 py-1 ml-2 hover:bg-red-600 transition-colors ease-in"
+              >
+                {acc.slice(0, 5) + "..." + acc.slice(48)}
+              </button>
+            ))}
+          </div>
+          <input
+            className="w-15 pl-5 py-3 rounded-l-lg bg-white placeholder-gray-700 anaheim"
+            placeholder="Add Wallet"
+            value={accForm}
+            onChange={handleAccForm}
+          />
+          <button
+            onClick={addAccount}
+            className="bg-indigo-700 rounded-r-lg py-3 px-3 mr-14 text-xl font-bol"
+          >
+            <span className="material-icons text-white align-middle">add</span>
+          </button>
+        </div>
       </span>
       <hr className="text-white" />
 
@@ -95,18 +198,25 @@ const Library = () => {
         </span>
       </button>
 
+      {filteredNfts.length === 0 && fetched && (
+        <h2 className="mt-16 sm:mx-4 md:mx-16 lg:mx-32 syne text-5xl text-white">
+          {accs.length > 0 ? "No Items" : "Add addresses to browse"}
+        </h2>
+      )}
+
       <div className="sm:mx-4 md:mx-16 lg:mx-32 grid sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 py-16">
-        {filteredNfts.length > 0 ? (
-          filteredNfts.map((nft) => <ItemCard key={nft.assetId} nft={nft} />)
-        ) : !fetched ? (
-          <>
-            <GhostCard h="40" />
-            <GhostCard h="50" />
-            <GhostCard h="45" />
-          </>
-        ) : (
-          <h2 className="syne text-5xl text-white">No Items</h2>
-        )}
+        <div className="flex flex-col">
+          {filteredNfts.map((nft, i) => i % 3 === 0 && <ItemCard key={nft.assetId} nft={nft} />)}
+          {!fetched && <GhostCard h="40" />}
+        </div>
+        <div className="flex flex-col">
+          {filteredNfts.map((nft, i) => i % 3 === 1 && <ItemCard key={nft.assetId} nft={nft} />)}
+          {!fetched && <GhostCard h="50" />}
+        </div>
+        <div className="flex flex-col">
+          {filteredNfts.map((nft, i) => i % 3 === 2 && <ItemCard key={nft.assetId} nft={nft} />)}
+          {!fetched && <GhostCard h="45" />}
+        </div>
       </div>
 
       {!fetched && (
@@ -147,12 +257,13 @@ const FilterTab = (props: FilterTabProps) => {
       style={{
         overflow: "hidden",
         maxHeight: props.show ? "500px" : "0",
-        transition: "max-height 1s ease-out",
+        transition: "max-height 1s",
+        backgroundColor: "red",
       }}
     >
       <div className="py-3 bg-white flex flex-col ">
         <div className="mx-40">
-          <h2 className="my-3 text-3xl font-semibold">Filter By Tag</h2>
+          <h2 className="my-3 text-3xl font-semibold anaheim">Filter By Tag</h2>
           <div className="py-1 mb-2 flex flex-row">
             {fltGlobalTags.length > 0 ? (
               fltGlobalTags.map((tag: string) => (

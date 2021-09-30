@@ -1,10 +1,11 @@
 import { Context, createContext, useState } from "react";
+import { VIEWS } from "../constants";
 
 const AppContext: Context<any> = createContext({});
 
 const AppProvider = (props: any) => {
   const [settings, setSettings] = useState({
-    addresses: [],
+    view: VIEWS.START,
     darkMode: true,
   });
 
