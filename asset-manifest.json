@@ -1,19 +1,20 @@
 {
   "files": {
-    "main.css": "/nft-gallery-algo/static/css/main.e541b7f3.chunk.css",
-    "main.js": "/nft-gallery-algo/static/js/main.3f85b6b0.chunk.js",
-    "main.js.map": "/nft-gallery-algo/static/js/main.3f85b6b0.chunk.js.map",
+    "main.css": "/nft-gallery-algo/static/css/main.40c7f5f4.chunk.css",
+    "main.js": "/nft-gallery-algo/static/js/main.1c413a84.chunk.js",
+    "main.js.map": "/nft-gallery-algo/static/js/main.1c413a84.chunk.js.map",
     "runtime-main.js": "/nft-gallery-algo/static/js/runtime-main.62e7ec07.js",
     "runtime-main.js.map": "/nft-gallery-algo/static/js/runtime-main.62e7ec07.js.map",
     "static/css/2.1d834ccf.chunk.css": "/nft-gallery-algo/static/css/2.1d834ccf.chunk.css",
-    "static/js/2.71abd117.chunk.js": "/nft-gallery-algo/static/js/2.71abd117.chunk.js",
-    "static/js/2.71abd117.chunk.js.map": "/nft-gallery-algo/static/js/2.71abd117.chunk.js.map",
+    "static/js/2.513673be.chunk.js": "/nft-gallery-algo/static/js/2.513673be.chunk.js",
+    "static/js/2.513673be.chunk.js.map": "/nft-gallery-algo/static/js/2.513673be.chunk.js.map",
     "index.html": "/nft-gallery-algo/index.html",
     "static/css/2.1d834ccf.chunk.css.map": "/nft-gallery-algo/static/css/2.1d834ccf.chunk.css.map",
-    "static/css/main.e541b7f3.chunk.css.map": "/nft-gallery-algo/static/css/main.e541b7f3.chunk.css.map",
-    "static/js/2.71abd117.chunk.js.LICENSE.txt": "/nft-gallery-algo/static/js/2.71abd117.chunk.js.LICENSE.txt",
+    "static/css/main.40c7f5f4.chunk.css.map": "/nft-gallery-algo/static/css/main.40c7f5f4.chunk.css.map",
+    "static/js/2.513673be.chunk.js.LICENSE.txt": "/nft-gallery-algo/static/js/2.513673be.chunk.js.LICENSE.txt",
     "static/media/AlgoSigner.abcce80b.svg": "/nft-gallery-algo/static/media/AlgoSigner.abcce80b.svg",
     "static/media/MyAlgoBlue.53c2f7a9.svg": "/nft-gallery-algo/static/media/MyAlgoBlue.53c2f7a9.svg",
+    "static/media/Reach.8331c83d.svg": "/nft-gallery-algo/static/media/Reach.8331c83d.svg",
     "static/media/Spinner.1977ba92.svg": "/nft-gallery-algo/static/media/Spinner.1977ba92.svg",
     "static/media/UnderConstruction.6a8f832d.png": "/nft-gallery-algo/static/media/UnderConstruction.6a8f832d.png",
     "static/media/WalletConnect.bd8aa632.svg": "/nft-gallery-algo/static/media/WalletConnect.bd8aa632.svg"
@@ -21,8 +22,8 @@
   "entrypoints": [
     "static/js/runtime-main.62e7ec07.js",
     "static/css/2.1d834ccf.chunk.css",
-    "static/js/2.71abd117.chunk.js",
-    "static/css/main.e541b7f3.chunk.css",
-    "static/js/main.3f85b6b0.chunk.js"
+    "static/js/2.513673be.chunk.js",
+    "static/css/main.40c7f5f4.chunk.css",
+    "static/js/main.1c413a84.chunk.js"
   ]
 }
