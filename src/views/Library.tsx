@@ -5,8 +5,10 @@ import { getAssetsOfAddress, getCollectionFromTokens, getDetailsOfAsset } from "
 import { NFT } from "../lib/nft";
 
 import Loading from "../assets/Spinner.svg";
+import Masonry from "react-masonry-css";
 import GhostCard from "../components/GhostCard";
 import { VIEWS } from "../constants";
+import { useWindowDimensions } from "../utils";
 
 const getStorageItem = (f: string, def: string) => {
   return JSON.parse(localStorage.getItem(f) ?? def);
@@ -19,9 +21,6 @@ const Library = () => {
   const appContext = useContext(AppContext);
 
   const [accs, setAccs] = useState<string[]>(getStorageItem("accounts", "[]"));
-
-  const [getNfts, setGetNfts] = useState<boolean>(false);
-
   const [nfts, setNfts] = useState<NFT[]>([]);
 
   const [fetched, setFetched] = useState<boolean>(false);
@@ -30,9 +29,17 @@ const Library = () => {
   const [expandFilter, setExpandFilter] = useState<boolean>(false);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
 
+  const { width } = useWindowDimensions();
+
   const [accForm, setAccForm] = useState("");
   const handleAccForm = (e: any) => setAccForm(e.target.value);
 
+  const handleScroll = (e: any) => {
+    const bottom = e.target.scrollHeight - e.target.scrollTop === e.target.clientHeight;
+    if (bottom) {
+      console.log("Hit rock bottom");
+    }
+  };
   const switchSelectedTag = (tag: string) => {
     return !selectedTags.includes(tag)
       ? () => setSelectedTags((prevTags) => [...prevTags, tag])
@@ -71,20 +78,10 @@ const Library = () => {
     appContext.set("view", VIEWS.START);
   };
 
-  const filterNfts = (): NFT[] => {
-    const idToTag = JSON.parse(localStorage.getItem("tags") ?? "{}");
-    return nfts.filter((nft: NFT) => {
-      return selectedTags.reduce(
-        (prev, tag) => prev && idToTag?.[nft.assetId] && idToTag[nft.assetId].includes(tag),
-        true
-      );
-    });
-  };
-
-  const filteredNfts = filterNfts();
-
   useEffect(() => {
     const getCachedNFTs = async () => {
+      if (interrupt) return;
+
       const cachedNfts = JSON.parse(localStorage.getItem("nfts") ?? "[]");
       if (cachedNfts.length === 0) return;
 
@@ -120,6 +117,8 @@ const Library = () => {
         fetchedNfts = [...fetchedNfts, fetchedNft];
       }
 
+      setInterrupt(false);
+
       const cacheMd = fetchedNfts.map((n: NFT) => ({
         [n.assetId]: {
           name: n.name,
@@ -132,7 +131,6 @@ const Library = () => {
       localStorage.setItem("nfts", JSON.stringify(cacheMd));
 
       setFetched(true);
-      // setNfts((prevState) => [...prevState, ...fetchedNfts]);
     };
 
     setFetched(false);
@@ -141,6 +139,7 @@ const Library = () => {
       .then((assets) => fetchNfts(assets));
 
     if (interrupt) {
+      console.log("Interrupt is false");
       setNfts([]);
       setStorageItem("nfts", [], []);
       setFetched(true);
@@ -148,10 +147,10 @@ const Library = () => {
     }
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [interrupt, accs]);
+  }, [accs]);
 
   return (
-    <div className="h-full w-screen" style={{ backgroundColor: "#171717" }}>
+    <div className="h-full w-screen" onScroll={(e) => {}} style={{ backgroundColor: "#171717" }}>
       <span className="py-10 pl-10 inline-flex w-full">
         <button onClick={goToStart}>
           <span className="material-icons transform scale-150 align-middle mr-4 text-white">
@@ -198,26 +197,29 @@ const Library = () => {
         </span>
       </button>
 
-      {filteredNfts.length === 0 && fetched && (
+      {nfts.length === 0 && fetched && (
         <h2 className="mt-16 sm:mx-4 md:mx-16 lg:mx-32 syne text-5xl text-white">
           {accs.length > 0 ? "No Items" : "Add addresses to browse"}
         </h2>
       )}
 
-      <div className="sm:mx-4 md:mx-16 lg:mx-32 grid sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 py-16">
-        <div className="flex flex-col">
-          {filteredNfts.map((nft, i) => i % 3 === 0 && <ItemCard key={nft.assetId} nft={nft} />)}
-          {!fetched && <GhostCard h="40" />}
-        </div>
-        <div className="flex flex-col">
-          {filteredNfts.map((nft, i) => i % 3 === 1 && <ItemCard key={nft.assetId} nft={nft} />)}
-          {!fetched && <GhostCard h="50" />}
-        </div>
-        <div className="flex flex-col">
-          {filteredNfts.map((nft, i) => i % 3 === 2 && <ItemCard key={nft.assetId} nft={nft} />)}
-          {!fetched && <GhostCard h="45" />}
-        </div>
-      </div>
+      <Masonry
+        breakpointCols={width < 800 ? 1 : width < 1200 ? 2 : 3}
+        className="flex mt-10"
+        columnClassName="mx-5 my-4"
+      >
+        {[
+          ...nfts.map((nft) => (
+            <div className="">
+              <ItemCard tags={selectedTags} key={nft.assetId} nft={nft} />
+            </div>
+          )),
+
+          !fetched && <GhostCard h="40" />,
+          !fetched && <GhostCard h="50" />,
+          !fetched && <GhostCard h="44" />,
+        ]}
+      </Masonry>
 
       {!fetched && (
         <div className="fixed right-10 bottom-10 py-3 px-5 inline-flex items-center rounded-md text-center text-white bg-indigo-700">

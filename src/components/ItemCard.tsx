@@ -7,6 +7,7 @@ import LazyLoad from "react-lazyload";
 
 type ItemCardProps = {
   nft: NFT;
+  tags: string[];
 };
 
 function difference(setA: Set<string>, setB: Set<string>) {
@@ -18,13 +19,16 @@ function difference(setA: Set<string>, setB: Set<string>) {
 }
 
 const ItemCard = (props: ItemCardProps) => {
-  const [tags, setTags] = useState([]);
+  const [tags, setTags] = useState<string[]>([]);
 
   useEffect(() => {
-    console.log("Getting tags", localStorage.getItem("tags"));
     setTags(JSON.parse(localStorage.getItem("tags") ?? "{}")?.[props.nft.assetId] ?? []);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  const willRender = () => {
+    return props.tags.reduce((prev, tag) => prev && tags.includes(tag), true);
+  };
 
   const handleTagChange = (newTags: string[]) => {
     const oldSet = new Set(tags);
@@ -52,7 +56,7 @@ const ItemCard = (props: ItemCardProps) => {
   const owner = props.nft.owner.slice(0, 5) + "..." + props.nft.owner.slice(50);
   const imageURL = props.nft.imgURL();
 
-  return (
+  return willRender() ? (
     <LazyLoad height={400}>
       <div
         className="ml-2 mb-10 shadow-lg w-md rounded-t bg-indigo-700"
@@ -81,6 +85,8 @@ const ItemCard = (props: ItemCardProps) => {
         <TagsInput value={tags} onChange={handleTagChange} />
       </div>
     </LazyLoad>
+  ) : (
+    <div />
   );
 };
 

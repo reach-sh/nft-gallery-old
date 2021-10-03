@@ -12,7 +12,7 @@ export const getAssetsOfAddress = async (address: string): Promise<any> => {
   const time1 = Date.now();
   const results = await client.accountInformation(address).do();
 
-  console.log("Got results in", Date.now() - time1);
+  // console.log("Got results in", Date.now() - time1);
 
   return Object.keys(results.assets)
     .filter((id: any) => results["assets"][id]["amount"] > 0)
@@ -38,7 +38,7 @@ export const getCollection = async (address: string, add: (n: NFT) => void): Pro
   const time1 = Date.now();
   const results = await client.accountInformation(address).do();
 
-  console.log("Got results in", Date.now() - time1);
+  // console.log("Got results in", Date.now() - time1);
 
   const plist = [];
   for (const a in results["assets"]) {
