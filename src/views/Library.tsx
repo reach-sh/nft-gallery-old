@@ -35,9 +35,10 @@ const Library = () => {
   const handleAccForm = (e: any) => setAccForm(e.target.value);
 
   const handleScroll = (e: any) => {
-    const bottom = e.target.scrollHeight - e.target.scrollTop === e.target.clientHeight;
-    if (bottom) {
-      console.log("Hit rock bottom");
+    console.log("Scrooling");
+    if (window.innerHeight + window.scrollY >= document.body.offsetHeight) {
+      console.log("you're at the bottom of the page");
+      // Show loading spinner and make fetch request to api
     }
   };
   const switchSelectedTag = (tag: string) => {
@@ -133,6 +134,8 @@ const Library = () => {
       setFetched(true);
     };
 
+    window.addEventListener("scroll", handleScroll);
+
     setFetched(false);
     getCachedNFTs()
       .then(() => fetchAssets())
@@ -146,11 +149,22 @@ const Library = () => {
       setInterrupt(false);
     }
 
+    return () => {
+      // return a cleanup function to unregister our function since its gonna run multiple times
+      window.removeEventListener("scroll", handleScroll);
+    };
+
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [accs]);
 
   return (
-    <div className="h-full w-screen" onScroll={(e) => {}} style={{ backgroundColor: "#171717" }}>
+    <div
+      className="h-full w-screen overflow-y-scroll"
+      onScroll={(e) => {
+        console.log("Scrolling");
+      }}
+      style={{ backgroundColor: "#171717" }}
+    >
       <span className="py-10 pl-10 inline-flex w-full">
         <button onClick={goToStart}>
           <span className="material-icons transform scale-150 align-middle mr-4 text-white">
@@ -215,9 +229,9 @@ const Library = () => {
             </div>
           )),
 
-          !fetched && <GhostCard h="40" />,
-          !fetched && <GhostCard h="50" />,
-          !fetched && <GhostCard h="44" />,
+          !fetched && <GhostCard key="gk1" h="40" />,
+          !fetched && <GhostCard key="gk2" h="50" />,
+          !fetched && <GhostCard key="gk3" h="44" />,
         ]}
       </Masonry>
 

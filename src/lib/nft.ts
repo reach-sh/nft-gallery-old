@@ -7,6 +7,7 @@ const METADATA_FILE = "metadata.json";
 
 export function resolveURL(url: string | undefined): string {
   if (!url) return "-";
+
   const chunks = url.split("://");
 
   // give up
@@ -81,6 +82,11 @@ export class NFT {
     }
 
     return "";
+  }
+
+  // TODO: Implement this
+  static getType(arc3: boolean, metadata: NFTMetadata, url: string) {
+    // const targetUrl = resolveURL(arc3 ? metadata.image : url);
   }
 
   static isArc3(token: any): boolean {

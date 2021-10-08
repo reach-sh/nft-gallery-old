@@ -4,11 +4,18 @@ import { VIEWS } from "../constants";
 import AppContext from "../context/appContext";
 
 import Reach from "../assets/Reach.svg";
+import GetModal from "../components/GetModal";
 
 const Start = () => {
   const appContext = useContext(AppContext);
   const [showModal, setShowModal] = useState(false);
   const handleCloseModal = () => setShowModal(false);
+
+  const [showGetModal, setShowGetModal] = useState<boolean>(false);
+  const handleGetModal = (open: boolean) => () => setShowGetModal(open);
+
+  const [appId, setAppId] = useState<string>("");
+  const handleAppId = (e: any) => setAppId(e.target.value);
 
   const goToLib = () => {
     appContext.set("view", VIEWS.LIBRARY);
@@ -37,15 +44,19 @@ const Start = () => {
           </button>
 
           <div className="flex rounded-md bg-gray-200">
-            <span className="material-icons self-center mx-3 opacity-50">play_arrow</span>
+            <button onClick={handleGetModal(true)}>
+              <span className="material-icons self-center mx-3 opacity-50">play_arrow</span>
+            </button>
             <input
-              disabled
+              value={appId}
+              onChange={handleAppId}
               className="anaheim h-full rounded-r-md pl-5 text-xl"
               placeholder="Search for an app"
             />
           </div>
         </div>
       </div>
+      {showGetModal && <GetModal appId={parseInt(appId)} close={handleGetModal(false)} />}
       {showModal && <WalletModal close={handleCloseModal} />}
     </div>
   );

@@ -2,8 +2,10 @@ import "react-tagsinput/react-tagsinput.css";
 
 import { useEffect, useState } from "react";
 import { NFT } from "../lib/nft";
+import FallbackImage from "./FallbackImage";
 import TagsInput from "react-tagsinput";
 import LazyLoad from "react-lazyload";
+import TransferModal from "./TransferModal";
 
 type ItemCardProps = {
   nft: NFT;
@@ -20,6 +22,12 @@ function difference(setA: Set<string>, setB: Set<string>) {
 
 const ItemCard = (props: ItemCardProps) => {
   const [tags, setTags] = useState<string[]>([]);
+
+  const [showTModal, setShowTModal] = useState<boolean>(false);
+  const handleShowTModal = (open: boolean) => () => setShowTModal(open);
+
+  const [showJModal, setShowJModal] = useState<boolean>(false);
+  const handleShowJModal = (open: boolean) => () => setShowJModal(open);
 
   useEffect(() => {
     setTags(JSON.parse(localStorage.getItem("tags") ?? "{}")?.[props.nft.assetId] ?? []);
@@ -64,7 +72,8 @@ const ItemCard = (props: ItemCardProps) => {
       >
         {/* Image */}
         <div className="mt-2 p-3">
-          <img src={imageURL} alt={name} className="object-fill w-full" />
+          <FallbackImage src={imageURL} extraStyle="object-fill w-full" />
+          {/* <img src={imageURL} alt={name} className="object-fill w-full" /> */}
         </div>
         {/* Text */}
         <div className="flex content-center p-2 h-20">
@@ -81,6 +90,24 @@ const ItemCard = (props: ItemCardProps) => {
             </span>
           </div>
         </div>
+
+        <div className="w-full flex justify-evenly">
+          {/* Reach Buttons */}
+          <button
+            className="syne p-2 mb-2 flex-1 mr-1 ml-3 rounded bg-gray-800 text-white hover:bg-gray-700"
+            onClick={handleShowTModal(true)}
+          >
+            Transfer
+          </button>
+          {showTModal && (
+            <TransferModal close={handleShowTModal(false)} nftId={props.nft.assetId} />
+          )}
+          {/* NFT JAM interaction */}
+          <button className="syne flex-1 ml-1 mr-3 p-2 mb-2 rounded bg-gray-800 text-white hover:bg-gray-700">
+            Sell
+          </button>
+        </div>
+
         {/* Tags */}
         <TagsInput value={tags} onChange={handleTagChange} />
       </div>

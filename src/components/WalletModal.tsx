@@ -6,21 +6,14 @@ import { connectWallet } from "../lib/connectWallet";
 import { useContext } from "react";
 import AppContext from "../context/appContext";
 
+import Modal from "./Modal";
+
 const WalletModal = (props: { close: any }) => {
   const appContext = useContext(AppContext);
   const connect = connectWallet(appContext.set);
 
   return (
-    <div
-      className="absolute rounded-xl 
-    left-1/12 w-5/6  
-    sm:left-1/6 sm:w-2/3
-    md:left-1/4 md:w-1/2 
-    xl:left-1/3 xl:w-1/3 
-    top-1/6 h-2/3 p-4 
-    bg-indigo-700 
-    flex flex-col justify-center overflow-hidden"
-    >
+    <Modal>
       <p
         className="text-4xl text-white text-center mb-16"
         style={{ fontFamily: "'Syne', sans-serif" }}
@@ -46,7 +39,7 @@ const WalletModal = (props: { close: any }) => {
       >
         <span className="material-icons">close</span>
       </button>
-    </div>
+    </Modal>
   );
 };
 
