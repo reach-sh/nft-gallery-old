@@ -108,8 +108,10 @@ const TransferModal = (props: TranferModalProps) => {
   };
 
   return (
-    <Modal>
-      <button onClick={props.close}>Close Modal</button>
+    <Modal outClick={props.close}>
+      <button className="relative text-white self-end -right-3" onClick={props.close}>
+        <span className="material-icons">close</span>
+      </button>
       <Step active={step === 0}>
         <div className="flex justify-between">
           <StepTitle txt="Step One: Connect Wallet" extraStyle="self-center" />

@@ -1,6 +1,9 @@
 const Modal = (props: any) => {
   return (
-    <div className="fixed left-0 top-0 w-screen h-screen grid justify-items-center bg-black bg-opacity-70">
+    <div
+      onClick={props.outClick}
+      className="fixed left-0 top-0 w-screen h-screen grid justify-items-center bg-black bg-opacity-70"
+    >
       <div
         className="
         rounded-xl 
@@ -11,8 +14,8 @@ const Modal = (props: any) => {
       bg-indigo-800
         shadow-lg
         self-center
-        flex flex-col justify-center overflow-hidden"
-        style={{ zIndex: -1 }}
+        flex flex-col justify-center overflow-x-hidden"
+        style={{ zIndex: -1, maxHeight: "70vw" }}
       >
         {props.children}
       </div>
