@@ -23,12 +23,12 @@ export const getDetailsOfAsset = async (id: number) => {
   return await NFT.fromToken(token);
 };
 
-export const getDetailsOfAssets = async (ids: number[]) => {
+/* export const getDetailsOfAssets = async (ids: number[]) => {
   const detailsPromise = ids.map((id) => getToken(id).then((token) => NFT.fromToken(token)));
 
   return await Promise.all(detailsPromise);
-};
-/* 
+}; */
+
 export const getDetailsOfAssets = async (ids: number[]) => {
   const results = [];
   for (let i = 0; i < ids.length; i++) {
@@ -37,7 +37,7 @@ export const getDetailsOfAssets = async (ids: number[]) => {
   }
 
   return results;
-}; */
+};
 
 export const getCollection = async (address: string, add: (n: NFT) => void): Promise<any> => {
   const results = await client.accountInformation(address).do();

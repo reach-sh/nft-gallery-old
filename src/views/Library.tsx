@@ -101,9 +101,16 @@ const Library = () => {
     }
 
     console.log(targetAssets.slice(0, n));
-    const newNfts = await getDetailsOfAssets(targetAssets.slice(0, n));
+    let newNfts: NFT[] = [];
+    for (let i = 0; i < n; i++) {
+      const newNft = await getDetailsOfAsset(targetAssets[i]);
+      newNfts = [...newNfts, newNft];
+      setNfts((prevNfts) => [...prevNfts, newNft]);
+    }
 
-    setNfts((prevNfts) => [...prevNfts, ...newNfts]);
+    //const newNfts = await getDetailsOfAssets(targetAssets.slice(0, n));
+
+    // setNfts((prevNfts) => [...prevNfts, ...newNfts]);
 
     setAssets(targetAssets.slice(n));
 
