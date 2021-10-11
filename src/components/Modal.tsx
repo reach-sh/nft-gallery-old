@@ -1,4 +1,8 @@
 const Modal = (props: any) => {
+  const stopBubble = (e: any) => {
+    e.stopPropagation();
+  };
+
   return (
     <div
       onClick={props.outClick}
@@ -13,9 +17,11 @@ const Modal = (props: any) => {
         xl:w-1/3 p-4 
       bg-indigo-800
         shadow-lg
+        z-10
         self-center
         flex flex-col justify-center overflow-x-hidden"
-        style={{ zIndex: -1, maxHeight: "70vw" }}
+        style={{ maxHeight: "70vw" }}
+        onClick={stopBubble}
       >
         {props.children}
       </div>

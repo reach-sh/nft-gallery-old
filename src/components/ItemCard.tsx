@@ -26,8 +26,13 @@ const ItemCard = (props: ItemCardProps) => {
   const [showTModal, setShowTModal] = useState<boolean>(false);
   const handleShowTModal = (open: boolean) => () => setShowTModal(open);
 
-  const [showJModal, setShowJModal] = useState<boolean>(false);
-  const handleShowJModal = (open: boolean) => () => setShowJModal(open);
+  /* const [showJModal, setShowJModal] = useState<boolean>(false);
+  const handleShowJModal = (open: boolean) => () => setShowJModal(open); */
+
+  const goToJam = () => {
+    const jamWindow = window.open("https://testnet.nftjam.net/");
+    if (jamWindow) jamWindow.opener = null;
+  };
 
   useEffect(() => {
     setTags(JSON.parse(localStorage.getItem("tags") ?? "{}")?.[props.nft.assetId] ?? []);
@@ -103,7 +108,10 @@ const ItemCard = (props: ItemCardProps) => {
             <TransferModal close={handleShowTModal(false)} nftId={props.nft.assetId} />
           )}
           {/* NFT JAM interaction */}
-          <button className="syne flex-1 ml-1 mr-3 p-2 mb-2 rounded bg-gray-800 text-white hover:bg-gray-700">
+          <button
+            className="syne flex-1 ml-1 mr-3 p-2 mb-2 rounded bg-gray-800 text-white hover:bg-gray-700"
+            onClick={goToJam}
+          >
             Sell
           </button>
         </div>

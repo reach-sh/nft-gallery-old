@@ -1,7 +1,12 @@
 import { useContext, useEffect, useState } from "react";
 import ItemCard from "../components/ItemCard";
 import AppContext from "../context/appContext";
-import { getAssetsOfAddress, getCollectionFromTokens, getDetailsOfAsset } from "../lib/algoHelpers";
+import {
+  getAssetsOfAddress,
+  getCollectionFromTokens,
+  getDetailsOfAsset,
+  getDetailsOfAssets,
+} from "../lib/algoHelpers";
 import { NFT } from "../lib/nft";
 
 import Loading from "../assets/Spinner.svg";
@@ -20,7 +25,10 @@ const setStorageItem = (f: string, val: any, def: any) => {
 const Library = () => {
   const appContext = useContext(AppContext);
 
+  const [update, setUpdate] = useState<boolean>(false);
+
   const [accs, setAccs] = useState<string[]>(getStorageItem("accounts", "[]"));
+  const [assets, setAssets] = useState<any[]>([]);
   const [nfts, setNfts] = useState<NFT[]>([]);
 
   const [fetched, setFetched] = useState<boolean>(false);
@@ -35,10 +43,14 @@ const Library = () => {
   const handleAccForm = (e: any) => setAccForm(e.target.value);
 
   const handleScroll = (e: any) => {
-    console.log("Scrooling");
     if (window.innerHeight + window.scrollY >= document.body.offsetHeight) {
-      console.log("you're at the bottom of the page");
-      // Show loading spinner and make fetch request to api
+      setFetched(false);
+      /* fetchNFTsOfN(5).then(() => {
+          trigger = false;
+        }); */
+      setUpdate(true);
+
+      console.log("Fetch new NFTs");
     }
   };
   const switchSelectedTag = (tag: string) => {
@@ -79,12 +91,53 @@ const Library = () => {
     appContext.set("view", VIEWS.START);
   };
 
+  const fetchNFTsOfN = async (n: number, fAssets?: any[]) => {
+    const targetAssets = fAssets ?? assets;
+
+    if (targetAssets.length === 0) {
+      console.log("Assets length is 0");
+      setFetched(true);
+      return;
+    }
+
+    console.log(targetAssets.slice(0, n));
+    const newNfts = await getDetailsOfAssets(targetAssets.slice(0, n));
+
+    setNfts((prevNfts) => [...prevNfts, ...newNfts]);
+
+    setAssets(targetAssets.slice(n));
+
+    const nftCache = getStorageItem("nfts", "[]");
+    const newMds = newNfts.map((n: NFT) => ({
+      id: n.assetId,
+      name: n.name,
+      url: n.url,
+      creator: n.creator,
+      manager: n.owner,
+      total: n.count,
+    }));
+    setStorageItem("nfts", [...nftCache, ...newMds], []);
+
+    setFetched(true);
+  };
+
+  useEffect(() => {
+    if (update) {
+      fetchNFTsOfN(5);
+      setUpdate(false);
+    }
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [update]);
+
   useEffect(() => {
     const getCachedNFTs = async () => {
       if (interrupt) return;
 
       const cachedNfts = JSON.parse(localStorage.getItem("nfts") ?? "[]");
       if (cachedNfts.length === 0) return;
+
+      console.log("Cached NFTs", cachedNfts);
 
       setNfts(await getCollectionFromTokens(cachedNfts));
     };
@@ -94,60 +147,14 @@ const Library = () => {
       for (let i = 0; i < accs.length; i++) {
         fetchedAssets = [...fetchedAssets, ...(await getAssetsOfAddress(accs[i]))];
       }
+      setAssets(fetchedAssets);
       return fetchedAssets;
     };
 
-    const fetchNfts = async (arr: any[]) => {
-      if (arr.length === 0) {
-        setFetched(true);
-        return;
-      }
-
-      setNfts([]);
-
-      let fetchedNfts: NFT[] = [];
-      for (let i = 0; i < arr.length; i++) {
-        if (interrupt) break;
-
-        const asset = arr[i];
-        const fetchedNft = await getDetailsOfAsset(asset);
-
-        setNfts((prevState) => {
-          return [...prevState, fetchedNft];
-        });
-        fetchedNfts = [...fetchedNfts, fetchedNft];
-      }
-
-      setInterrupt(false);
-
-      const cacheMd = fetchedNfts.map((n: NFT) => ({
-        [n.assetId]: {
-          name: n.name,
-          url: n.url,
-          creator: n.creator,
-          manager: n.owner,
-          total: n.count,
-        },
-      }));
-      localStorage.setItem("nfts", JSON.stringify(cacheMd));
-
-      setFetched(true);
-    };
-
     window.addEventListener("scroll", handleScroll);
-
+    setNfts([]);
     setFetched(false);
-    getCachedNFTs()
-      .then(() => fetchAssets())
-      .then((assets) => fetchNfts(assets));
-
-    if (interrupt) {
-      console.log("Interrupt is false");
-      setNfts([]);
-      setStorageItem("nfts", [], []);
-      setFetched(true);
-      setInterrupt(false);
-    }
+    fetchAssets().then((fAssets) => fetchNFTsOfN(5, fAssets));
 
     return () => {
       // return a cleanup function to unregister our function since its gonna run multiple times

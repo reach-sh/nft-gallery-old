@@ -9,7 +9,6 @@ export const getToken = async (assetId: number): Promise<any> => {
 };
 
 export const getAssetsOfAddress = async (address: string): Promise<any> => {
-  const time1 = Date.now();
   const results = await client.accountInformation(address).do();
 
   // console.log("Got results in", Date.now() - time1);
@@ -25,6 +24,12 @@ export const getDetailsOfAsset = async (id: number) => {
 };
 
 export const getDetailsOfAssets = async (ids: number[]) => {
+  const detailsPromise = ids.map((id) => getToken(id).then((token) => NFT.fromToken(token)));
+
+  return await Promise.all(detailsPromise);
+};
+/* 
+export const getDetailsOfAssets = async (ids: number[]) => {
   const results = [];
   for (let i = 0; i < ids.length; i++) {
     const token = await getToken(ids[i]);
@@ -32,10 +37,9 @@ export const getDetailsOfAssets = async (ids: number[]) => {
   }
 
   return results;
-};
+}; */
 
 export const getCollection = async (address: string, add: (n: NFT) => void): Promise<any> => {
-  const time1 = Date.now();
   const results = await client.accountInformation(address).do();
 
   // console.log("Got results in", Date.now() - time1);

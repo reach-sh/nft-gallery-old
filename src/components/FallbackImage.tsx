@@ -27,7 +27,7 @@ const FallbackImage = (props: FallbackImageProps) => {
   return (
     <>
       {videoFailed ? (
-        <p onClick={goFullscreen} className="syne text-2xl py-5 align-middle text-center">
+        <p onClick={goFullscreen} className="syne text-2xl p-5 align-middle text-center">
           {props.src}
         </p>
       ) : failed ? (
