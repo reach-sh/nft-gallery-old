@@ -2,7 +2,7 @@
   "name": "nft-gallery",
   "version": "0.1.0",
   "private": true,
-  "homepage": "https://zetsuboii.github.io/nft-gallery-algo/",
+  "homepage": "https://reach-sh.github.io/nft-gallery",
   "dependencies": {
     "@craco/craco": "^6.3.0",
     "@randlabs/myalgo-connect": "^1.1.1",
