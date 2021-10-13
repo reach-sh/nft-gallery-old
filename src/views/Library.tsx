@@ -43,7 +43,10 @@ const Library = () => {
   const handleAccForm = (e: any) => setAccForm(e.target.value);
 
   const handleScroll = (e: any) => {
-    if (window.innerHeight + window.scrollY >= document.body.offsetHeight && assets.length > 0) {
+    if (
+      window.innerHeight + window.scrollY >= document.body.offsetHeight &&
+      nfts.length < assets.length
+    ) {
       setFetched(false);
       setUpdate(true);
     }
@@ -108,7 +111,8 @@ const Library = () => {
 
     // setNfts((prevNfts) => [...prevNfts, ...newNfts]);
 
-    setAssets(targetAssets.length >= n ? targetAssets.slice(n) : []);
+    setAssets(targetAssets.slice(n));
+    //setAssets(fAssets || targetAssets.length >= n ? targetAssets.slice(n) : []);
 
     /*     const nftCache = getStorageItem("nfts", "[]");
     const newMds = newNfts.map((n: NFT) => ({
@@ -151,7 +155,7 @@ const Library = () => {
         fetchedAssets = [...fetchedAssets, ...(await getAssetsOfAddress(accs[i]))];
       }
       setAssets(fetchedAssets);
-      console.log(fetchedAssets);
+      console.log({ fetchedAssets });
       return fetchedAssets;
     };
 
@@ -184,7 +188,7 @@ const Library = () => {
         </button>
         <h1 className="syne text-5xl font-bold text-white">Your Collection</h1>
         <button
-          className="p-3 bg-indigo-700 rounded ml-8"
+          className="p-3 bg-indigo-700 hover:bg-red-600 rounded ml-8"
           onClick={() => {
             localStorage.removeItem("nfts");
             localStorage.removeItem("accounts");
