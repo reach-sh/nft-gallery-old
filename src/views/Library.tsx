@@ -43,14 +43,9 @@ const Library = () => {
   const handleAccForm = (e: any) => setAccForm(e.target.value);
 
   const handleScroll = (e: any) => {
-    if (window.innerHeight + window.scrollY >= document.body.offsetHeight) {
+    if (window.innerHeight + window.scrollY >= document.body.offsetHeight && assets.length > 0) {
       setFetched(false);
-      /* fetchNFTsOfN(5).then(() => {
-          trigger = false;
-        }); */
       setUpdate(true);
-
-      console.log("Fetch new NFTs");
     }
   };
   const switchSelectedTag = (tag: string) => {
@@ -100,9 +95,10 @@ const Library = () => {
       return;
     }
 
-    console.log(targetAssets.slice(0, n));
     let newNfts: NFT[] = [];
     for (let i = 0; i < n; i++) {
+      if (!targetAssets[i]) continue;
+
       const newNft = await getDetailsOfAsset(targetAssets[i]);
       newNfts = [...newNfts, newNft];
       setNfts((prevNfts) => [...prevNfts, newNft]);
@@ -112,9 +108,9 @@ const Library = () => {
 
     // setNfts((prevNfts) => [...prevNfts, ...newNfts]);
 
-    setAssets(targetAssets.slice(n));
+    setAssets(targetAssets.length >= n ? targetAssets.slice(n) : []);
 
-    const nftCache = getStorageItem("nfts", "[]");
+    /*     const nftCache = getStorageItem("nfts", "[]");
     const newMds = newNfts.map((n: NFT) => ({
       id: n.assetId,
       name: n.name,
@@ -123,7 +119,7 @@ const Library = () => {
       manager: n.owner,
       total: n.count,
     }));
-    setStorageItem("nfts", [...nftCache, ...newMds], []);
+    setStorageItem("nfts", [...nftCache, ...newMds], []); */
 
     setFetched(true);
   };
@@ -155,6 +151,7 @@ const Library = () => {
         fetchedAssets = [...fetchedAssets, ...(await getAssetsOfAddress(accs[i]))];
       }
       setAssets(fetchedAssets);
+      console.log(fetchedAssets);
       return fetchedAssets;
     };
 
@@ -186,6 +183,16 @@ const Library = () => {
           </span>
         </button>
         <h1 className="syne text-5xl font-bold text-white">Your Collection</h1>
+        <button
+          className="p-3 bg-indigo-700 rounded ml-8"
+          onClick={() => {
+            localStorage.removeItem("nfts");
+            localStorage.removeItem("accounts");
+            localStorage.removeItem("mds");
+          }}
+        >
+          <span className="text-white material-icons font-sm">delete</span>
+        </button>
         <div className="ml-auto flex flex-row">
           <div className="px-4 ">
             {accs.map((acc: string) => (
@@ -205,9 +212,17 @@ const Library = () => {
           />
           <button
             onClick={addAccount}
+            disabled={!(accForm.length > 40)}
             className="bg-indigo-700 rounded-r-lg py-3 px-3 mr-14 text-xl font-bol"
           >
-            <span className="material-icons text-white align-middle">add</span>
+            <span
+              className={
+                "material-icons align-middle " +
+                (accForm.length > 40 ? "text-white" : "text-gray-400 opacity-60")
+              }
+            >
+              add
+            </span>
           </button>
         </div>
       </span>

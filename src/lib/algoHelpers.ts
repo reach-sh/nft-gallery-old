@@ -19,7 +19,9 @@ export const getAssetsOfAddress = async (address: string): Promise<any> => {
 };
 
 export const getDetailsOfAsset = async (id: number) => {
+  console.log("Get details of", id);
   const token = await getToken(id);
+  console.log("Got token", token);
   return await NFT.fromToken(token);
 };
 
