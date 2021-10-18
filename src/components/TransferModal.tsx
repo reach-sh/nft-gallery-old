@@ -37,10 +37,13 @@ const TransferModal = (props: TranferModalProps) => {
   const [amount, setAmount] = useState<number>(0);
   const handleSetAmount = (e: any) => setAmount(e.target.value);
 
+  const [ctcHandle, setCtcHandle] = useState<any>(null);
+
   const [timeout, setTimeout] = useState<number>(60);
   const handleSetTimeout = (e: any) => setTimeout(e.target.value);
 
   const [step, setStep] = useState<number>(0);
+  // TODO: Add time out view
   const [timedOut, setTimedOut] = useState<boolean>(false);
 
   const [acc, setAcc] = useState<any>(null);
@@ -48,7 +51,6 @@ const TransferModal = (props: TranferModalProps) => {
 
   const validateFields = () => {
     // TODO: Implement this
-
     return true;
   };
 
@@ -61,14 +63,21 @@ const TransferModal = (props: TranferModalProps) => {
     try {
       setAcc(await stdlib.getDefaultAccount());
       setStep((prevState) => prevState + 1);
-    } catch (e) {}
+    } catch (e) {
+      console.log(e);
+    }
   };
 
   const deployContract = async () => {
     try {
-      setCtc(await acc.deploy(withTokens ? AtomicTransfer : SafeTransfer));
+      const ctc = await acc.deploy(withTokens ? AtomicTransfer : SafeTransfer);
+      console.log("GOT ctc", JSON.stringify(ctc).slice(0, 15));
+      setCtc(ctc);
+
       setStep((prevState) => prevState + 1);
-    } catch (e) {}
+    } catch (e) {
+      console.log(e);
+    }
   };
 
   const startTransfer = async () => {
@@ -96,13 +105,18 @@ const TransferModal = (props: TranferModalProps) => {
               return {
                 token: props.nftId,
                 amountToken: 1,
-                amountAlgo: amount,
+                amountAlgo: stdlib.parseCurrency(amount),
                 time: timeout,
               };
             },
       };
 
       (withTokens ? AtomicTransfer : SafeTransfer).Alice(ctc, aliceInterface);
+
+      const ctcInfo = await ctc.getInfo();
+      console.log("GOT ctcInfo", ctcInfo);
+      setCtcHandle(ctcInfo);
+
       setStep((prevState) => prevState + 1);
     } catch (e) {}
   };
@@ -182,6 +196,7 @@ const TransferModal = (props: TranferModalProps) => {
       </Step>
       <Step active={step === 3}>
         <div className="flex justify-between">
+          {ctcHandle && <StepTitle txt={"Share this with receiver: " + ctcHandle} />}
           <StepTitle txt="Step Four: Start Transfer" extraStyle="self-center" />
           <StepButton fn={startTransfer} txt="Start Transfer" disabled={!(step === 3)} />
         </div>

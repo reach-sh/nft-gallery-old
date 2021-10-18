@@ -32,6 +32,7 @@ const GetModal = (props: GetModalProps) => {
   const [ctc, setCtc] = useState<any>(null);
 
   const [acceptResolve, setAcceptResolve] = useState<any>(null);
+  const handleAcceptResolve = () => acceptResolve(true);
 
   const [params, setParams] = useState<any>(null);
 
@@ -39,20 +40,27 @@ const GetModal = (props: GetModalProps) => {
     try {
       setAcc(await stdlib.getDefaultAccount());
       setStep((prevState) => prevState + 1);
-    } catch (e) {}
+    } catch (e) {
+      console.log(e);
+    }
   };
 
   const selectBackend = (idx: number) => () => {
     try {
       setBackend(idx === 0 ? SafeTransfer : AtomicTransfer);
       setStep((prevState) => prevState + 1);
-    } catch (e) {}
+    } catch (e) {
+      console.log(e);
+    }
   };
 
   const attachToContract = async () => {
     try {
       setCtc(await acc.attach(backend, props.appId));
-    } catch (e) {}
+      setStep((prevState) => prevState + 1);
+    } catch (e) {
+      console.log(e);
+    }
   };
 
   const startTransfer = async () => {
@@ -65,7 +73,7 @@ const GetModal = (props: GetModalProps) => {
           setStep((prevState) => prevState + 1);
         },
         acceptSwap: async (transferParams: any) => {
-          await acc.acceptToken(
+          await acc.tokenAccept(
             transferParams?.tokenA ? transferParams.tokenA : transferParams.token
           );
 
@@ -86,12 +94,12 @@ const GetModal = (props: GetModalProps) => {
                 }
           );
 
-          await new Promise((resolve) => {
-            setStep((prevState) => prevState + 1);
+          return await new Promise<boolean>((resolve) => {
+            //setStep((prevState) => prevState + 1);
             setAcceptResolve(resolve);
           });
 
-          setStep((prevState) => prevState + 1);
+          // setStep((prevState) => prevState + 1);
         },
       };
 
@@ -172,7 +180,7 @@ const GetModal = (props: GetModalProps) => {
             </div>
 
             <div className=" bg-gray-500 rounded py-1 px-2">
-              <p className="syne text-lg">{params.tokenA}</p>
+              <p className="syne text-lg">{params.tokenA.toString()}</p>
             </div>
 
             <div className="flex my-2 mt-3">
@@ -181,17 +189,18 @@ const GetModal = (props: GetModalProps) => {
 
             <div className=" bg-gray-500 rounded py-1 px-2">
               <p className="anaheim font-bold text-2xl">
-                Price: {params.amountB} {params.type === "atomic" ? "Tokens" : "Algo"}
+                Price: {stdlib.formatCurrency(params.amountB, 4)}{" "}
+                {params.type === "atomic" ? "Tokens" : "Algo"}
               </p>
               {params.type === "atomic" && (
-                <small className="syne">Token ID: {params.tokenB}</small>
+                <small className="syne">Token ID: {params.tokenB.toString()}</small>
               )}
             </div>
 
             <div className="w-full flex justify-evenly bg-gray-600">
               <button
                 className="syne p-2 mb-2 flex-1 mr-1 ml-3 rounded bg-green-800 text-white hover:bg-green-700"
-                onClick={acceptResolve}
+                onClick={handleAcceptResolve}
               >
                 Accept
               </button>
