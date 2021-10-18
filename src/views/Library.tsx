@@ -1,12 +1,7 @@
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import ItemCard from "../components/ItemCard";
 import AppContext from "../context/appContext";
-import {
-  getAssetsOfAddress,
-  getCollectionFromTokens,
-  getDetailsOfAsset,
-  getDetailsOfAssets,
-} from "../lib/algoHelpers";
+import { getAssetsOfAddress, getCollectionFromTokens, getDetailsOfAsset } from "../lib/algoHelpers";
 import { NFT } from "../lib/nft";
 
 import Loading from "../assets/Spinner.svg";
@@ -28,8 +23,22 @@ const Library = () => {
   const [update, setUpdate] = useState<boolean>(false);
 
   const [accs, setAccs] = useState<string[]>(getStorageItem("accounts", "[]"));
-  const [assets, setAssets] = useState<any[]>([]);
-  const [nfts, setNfts] = useState<NFT[]>([]);
+
+  const [assets, _setAssets] = useState<any[]>([]);
+
+  const assetsRef = useRef<any[]>(assets);
+  const setAssets = (data: any) => {
+    assetsRef.current = data;
+    _setAssets(data);
+  };
+
+  const [nfts, _setNfts] = useState<NFT[]>([]);
+
+  const nftsRef = useRef<NFT[]>(nfts);
+  const setNfts = (data: NFT[]) => {
+    nftsRef.current = data;
+    _setNfts(data);
+  };
 
   const [fetched, setFetched] = useState<boolean>(false);
   const [interrupt, setInterrupt] = useState<boolean>(false);
@@ -45,7 +54,7 @@ const Library = () => {
   const handleScroll = (e: any) => {
     if (
       window.innerHeight + window.scrollY >= document.body.offsetHeight &&
-      nfts.length < assets.length
+      nftsRef.current.length < assetsRef.current.length
     ) {
       setFetched(false);
       setUpdate(true);
@@ -104,7 +113,7 @@ const Library = () => {
 
       const newNft = await getDetailsOfAsset(targetAssets[i]);
       newNfts = [...newNfts, newNft];
-      setNfts((prevNfts) => [...prevNfts, newNft]);
+      setNfts([...nftsRef.current, newNft]);
     }
 
     //const newNfts = await getDetailsOfAssets(targetAssets.slice(0, n));
@@ -180,23 +189,30 @@ const Library = () => {
       }}
       style={{ backgroundColor: "#171717" }}
     >
-      <span className="py-10 pl-10 inline-flex w-full">
-        <button onClick={goToStart}>
-          <span className="material-icons transform scale-150 align-middle mr-4 text-white">
-            chevron_left
-          </span>
-        </button>
-        <h1 className="syne text-5xl font-bold text-white">Your Collection</h1>
-        <button
-          className="p-3 bg-indigo-700 hover:bg-red-600 rounded ml-8"
-          onClick={() => {
-            localStorage.removeItem("nfts");
-            localStorage.removeItem("accounts");
-            localStorage.removeItem("mds");
-          }}
-        >
-          <span className="text-white material-icons font-sm">delete</span>
-        </button>
+      <span className="py-10 pl-10 flex flex-col text-center md:inline-flex md:flex-row gap-3 md:gap-0 w-full">
+        <div className="flex justify-evenly">
+          <button onClick={goToStart}>
+            <span className="material-icons transform scale-150 align-middle mr-4 text-white">
+              chevron_left
+            </span>
+          </button>
+
+          <h1 className="syne self-center text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-bold text-white">
+            Your Collection
+          </h1>
+
+          <button
+            className="p-3 self-center bg-indigo-700 hover:bg-red-600 rounded md:ml-8"
+            onClick={() => {
+              localStorage.removeItem("nfts");
+              localStorage.removeItem("accounts");
+              localStorage.removeItem("mds");
+            }}
+          >
+            <span className="text-white material-icons font-sm">delete</span>
+          </button>
+        </div>
+
         <div className="ml-auto flex flex-row">
           <div className="px-4 ">
             {accs.map((acc: string) => (
@@ -245,7 +261,7 @@ const Library = () => {
       </button>
 
       {nfts.length === 0 && fetched && (
-        <h2 className="mt-16 sm:mx-4 md:mx-16 lg:mx-32 syne text-5xl text-white">
+        <h2 className="mt-16 mx-8 md:mx-16 lg:mx-32 syne md:text-5xl text-2xl text-white">
           {accs.length > 0 ? "No Items" : "Add addresses to browse"}
         </h2>
       )}
