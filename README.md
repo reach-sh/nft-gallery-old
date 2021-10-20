@@ -1,5 +1,7 @@
 # NFT Gallery (ga//ery)
 
+(Under construction)
+
 ## Instructions
 
 - `git clone`
