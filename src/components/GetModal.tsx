@@ -1,226 +1,401 @@
 import MyAlgoConnect from "@reach-sh/stdlib/ALGO_MyAlgoConnect";
+import WalletConnect from "@reach-sh/stdlib/ALGO_WalletConnect";
+
 import { conf } from "../lib/config";
 import { loadStdlib } from "@reach-sh/stdlib";
 
 import Modal from "./Modal";
-import { useState } from "react";
-import { Step, StepButton, StepTitle } from "./ModalHelpers";
+import { useReducer, useRef } from "react";
+import { ModalFormAlert, ModalFormTitle, ModalFormProgressButton } from "./ModalForm";
 
 const SafeTransfer = require("../contracts/build/safeTransfer.main.mjs");
 const AtomicTransfer = require("../contracts/build/atomicTransfer.main.mjs");
 
 const stdlib = loadStdlib("ALGO");
 
-stdlib.setWalletFallback(
-  stdlib.walletFallback({
-    providerEnv: conf.network,
-    MyAlgoConnect,
-  })
-);
+enum MODAL_ACTIONS {
+  MAKE_READY,
+  PROCEED_STEP,
+  ERROR_OUT,
+  TIME_OUT,
+  CLEAR_ERRORS,
+  SET_ACCOUNT,
+  SET_SWAP,
+}
 
-type GetModalProps = {
-  appId: number;
-  close: () => void;
+enum CONTRACT_TYPES {
+  SAFE,
+  ATOMIC,
+}
+
+type ModalState = {
+  step: number;
+  ready: boolean;
+  timeout: boolean;
+  error: boolean;
+  account: any;
+  swap: any;
 };
 
-const GetModal = (props: GetModalProps) => {
-  const [step, setStep] = useState<number>(0);
-  const [timedOut, setTimedOut] = useState<boolean>(false);
+function reducer(state: ModalState, action: { type: MODAL_ACTIONS; payload?: any }) {
+  console.log(state.step);
+  switch (action.type) {
+    case MODAL_ACTIONS.MAKE_READY:
+      return {
+        ...state,
+        ready: true,
+      };
 
-  const [acc, setAcc] = useState<any>(null);
-  const [backend, setBackend] = useState<any>(null);
-  const [ctc, setCtc] = useState<any>(null);
+    case MODAL_ACTIONS.PROCEED_STEP:
+      return {
+        ...state,
+        step: state.step + 1,
+        ready: false,
+      };
 
-  const [acceptResolve, setAcceptResolve] = useState<any>(null);
-  const handleAcceptResolve = () => acceptResolve(true);
+    case MODAL_ACTIONS.TIME_OUT:
+      return {
+        ...state,
+        timeout: true,
+      };
 
-  const [params, setParams] = useState<any>(null);
+    case MODAL_ACTIONS.ERROR_OUT:
+      return {
+        ...state,
+        error: true,
+      };
 
-  const connectWallet = async () => {
-    try {
-      setAcc(await stdlib.getDefaultAccount());
-      setStep((prevState) => prevState + 1);
-    } catch (e) {
-      console.log(e);
-    }
-  };
+    case MODAL_ACTIONS.CLEAR_ERRORS:
+      return {
+        ...state,
+        error: false,
+        timeout: false,
+      };
 
-  const selectBackend = (idx: number) => () => {
-    try {
-      setBackend(idx === 0 ? SafeTransfer : AtomicTransfer);
-      setStep((prevState) => prevState + 1);
-    } catch (e) {
-      console.log(e);
-    }
-  };
+    case MODAL_ACTIONS.SET_ACCOUNT:
+      if (!action.payload) throw new Error("Account payload is falsy");
 
-  const attachToContract = async () => {
-    try {
-      setCtc(await acc.attach(backend, props.appId));
-      setStep((prevState) => prevState + 1);
-    } catch (e) {
-      console.log(e);
-    }
-  };
+      return {
+        ...state,
+        account: action.payload,
+        ready: true,
+      };
 
-  const startTransfer = async () => {
-    try {
-      const bobInterface = {
-        seeTimeout: () => {
-          setTimedOut(true);
-        },
-        seeTransfer: () => {
-          setStep((prevState) => prevState + 1);
-        },
-        acceptSwap: async (transferParams: any) => {
-          await acc.tokenAccept(
-            transferParams?.tokenA ? transferParams.tokenA : transferParams.token
-          );
+    case MODAL_ACTIONS.SET_SWAP:
+      if (!action.payload) throw new Error("Account payload is falsy");
 
-          setParams(
-            transferParams?.tokenB
-              ? {
-                  type: "atomic",
-                  tokenA: transferParams.tokenA,
-                  amountA: transferParams.amountA,
-                  tokenB: transferParams.tokenB,
-                  amountB: transferParams.amountB,
-                }
-              : {
-                  type: "standard",
-                  tokenA: transferParams.token,
-                  amountA: transferParams.amountToken,
-                  amountB: transferParams.amountAlgo,
-                }
-          );
+      if (action.payload.contractType === CONTRACT_TYPES.ATOMIC) {
+        return {
+          ...state,
+          step: state.step + 1,
+          swap: {
+            tokenA: action.payload.transferParams.tokenA,
+            amountA: action.payload.transferParams.amountA,
+            tokenB: action.payload.transferParams.tokenB,
+            amountB: action.payload.transferParams.amountB,
+          },
+        };
+      }
 
-          return await new Promise<boolean>((resolve) => {
-            //setStep((prevState) => prevState + 1);
-            setAcceptResolve(resolve);
-          });
-
-          // setStep((prevState) => prevState + 1);
+      return {
+        ...state,
+        step: state.step + 1,
+        swap: {
+          tokenA: action.payload.transferParams.token,
+          amountA: action.payload.transferParams.amountToken,
+          amountB: action.payload.transferParams.amountAlgo,
         },
       };
 
-      backend.Bob(ctc, bobInterface);
-      setStep((prevState) => prevState + 1);
-    } catch (e) {}
+    default:
+      return state;
+  }
+}
+
+const initialState: ModalState = {
+  step: 0,
+  ready: false,
+  timeout: false,
+  error: false,
+  account: null,
+  swap: null,
+};
+
+type BuyerModalProps = {
+  appId: string; // e.g. 123456a / 123456s
+  close: () => void;
+};
+
+const BuyerModal = (props: BuyerModalProps) => {
+  const contractType =
+    props.appId.slice(0, 1) === "a" ? CONTRACT_TYPES.ATOMIC : CONTRACT_TYPES.SAFE;
+  const appId = parseInt(props.appId.slice(1));
+
+  const [state, dispatch] = useReducer(reducer, initialState);
+
+  const handleOutClick = () => {
+    dispatch({ type: MODAL_ACTIONS.CLEAR_ERRORS });
+    props.close();
   };
+
+  const acceptRef = useRef<any>();
+  const setAcceptRef = (data: any) => {
+    acceptRef.current = data;
+  };
+  const acceptPrice = () => {
+    // dispatch({ type: MODAL_ACTIONS.PROCEED_STEP });
+    acceptRef.current(true);
+  };
+
+  if (state.error)
+    return (
+      <Modal outClick={handleOutClick}>
+        <div className="text-2xl text-white text-center p-6 my-6">
+          <span className="material-icons transform scale-150 mb-4">error</span>
+          <h2 className="syne">
+            An error occured while transferring.
+            <br />
+            Please refresh and try again.
+          </h2>
+        </div>
+      </Modal>
+    );
 
   return (
     <Modal outClick={props.close}>
-      <button className="relative text-white self-end -right-3" onClick={props.close}>
-        <span className="material-icons">close</span>
-      </button>
-      <Step active={step === 0}>
-        <div className="flex justify-between">
-          <StepTitle txt="Step One: Connect Wallet" extraStyle="self-center" />
-          <StepButton fn={connectWallet} disabled={step !== 0} txt="Connect Wallet" />
-        </div>
-      </Step>
+      <div style={{ minHeight: "40vh" }} className="overflow-y-auto flex flex-col">
+        <FormSwitcher
+          state={state}
+          dispatch={dispatch}
+          contractType={contractType}
+          appId={appId}
+          acceptPrice={acceptPrice}
+          setAcceptRef={setAcceptRef}
+          closeModal={props.close}
+        />
+      </div>
 
-      <Step active={step === 1}>
-        <div className="flex justify-between">
-          <StepTitle txt="Step Two: Select Payment" extraStyle="self-center" />
-          <span>
-            <button
-              disabled={step !== 1}
-              className={
-                "px-3 py-2 rounded-l-lg mr-0 syne " +
-                (step === 1
-                  ? " bg-indigo-700 hover:bg-indigo-600 text-white"
-                  : "bg-indigo-200 text-gray-800")
-              }
-              onClick={selectBackend(0)}
-            >
-              With Algo
-            </button>
-            <button
-              disabled={step !== 1}
-              className={
-                "px-3 py-2 my-2 border-black border-l-2 rounded-r-lg ml-0 syne " +
-                (step === 1
-                  ? " bg-indigo-700 hover:bg-indigo-600 text-white"
-                  : "bg-indigo-200 text-gray-800")
-              }
-              onClick={selectBackend(1)}
-            >
-              With Tokens
-            </button>
-          </span>
-        </div>
-        <p className="anaheim rounded-lg mt-5 text-center text-lg text-white bg-red-700 mx-2 p-3">
-          Get the payment information from the sender, {<br />} if you choose the wrong type
-          transfer will fail!
-        </p>
-      </Step>
-
-      <Step active={step === 2}>
-        <div className="flex justify-between">
-          <StepTitle txt="Step Three: Attach to Contract" extraStyle="self-center" />
-          <StepButton fn={attachToContract} txt="Attach to Contract" disabled={!(step === 2)} />
-        </div>
-      </Step>
-
-      <Step active={step === 3}>
-        <div className="flex justify-between">
-          <StepTitle txt="Step Four: Start Transfer" extraStyle="self-center" />
-          <StepButton fn={startTransfer} txt="Start Transfer" disabled={!(step === 3)} />
-        </div>
-      </Step>
-
-      <Step active={step === 4}>
-        <StepTitle txt="Step Five: Accept Terms" />
-
-        {params && (
-          <>
-            <div className="flex my-2 mt-3">
-              <p className="syne font-bold text-lg mr-5">NFT ID</p>
-            </div>
-
-            <div className=" bg-gray-500 rounded py-1 px-2">
-              <p className="syne text-lg">{params.tokenA.toString()}</p>
-            </div>
-
-            <div className="flex my-2 mt-3">
-              <p className="syne font-bold text-lg mr-5">Price</p>
-            </div>
-
-            <div className=" bg-gray-500 rounded py-1 px-2">
-              <p className="anaheim font-bold text-2xl">
-                Price: {stdlib.formatCurrency(params.amountB, 4)}{" "}
-                {params.type === "atomic" ? "Tokens" : "Algo"}
-              </p>
-              {params.type === "atomic" && (
-                <small className="syne">Token ID: {params.tokenB.toString()}</small>
-              )}
-            </div>
-
-            <div className="w-full flex justify-evenly bg-gray-600">
-              <button
-                className="syne p-2 mb-2 flex-1 mr-1 ml-3 rounded bg-green-800 text-white hover:bg-green-700"
-                onClick={handleAcceptResolve}
-              >
-                Accept
-              </button>
-
-              <button
-                className="syne p-2 mb-2 flex-1 mr-1 ml-3 rounded bg-red-800 text-white hover:bg-red-700"
-                onClick={props.close}
-              >
-                Reject
-              </button>
-            </div>
-          </>
+      <div style={{ minHeight: "10vh" }} className=" flex justify-around items-center">
+        {state.ready && (
+          <ModalFormProgressButton
+            txt="Next >"
+            state="open"
+            onClick={() => dispatch({ type: MODAL_ACTIONS.PROCEED_STEP })}
+          />
         )}
-      </Step>
-
-      <Step active={step === 5}>
-        <StepTitle txt="Step Six: Wait For Transfer" />
-      </Step>
+      </div>
     </Modal>
   );
 };
 
-export default GetModal;
+type FormSwitcherProps = {
+  appId: number;
+  contractType: CONTRACT_TYPES;
+  state: ModalState;
+  dispatch: React.Dispatch<{ type: MODAL_ACTIONS; payload?: any }>;
+  acceptPrice: any;
+  setAcceptRef: any;
+  closeModal: any;
+};
+const FormSwitcher = (props: FormSwitcherProps) => {
+  switch (props.state.step) {
+    case 0:
+      return <ConnectWallet state={props.state} dispatch={props.dispatch} />;
+    case 1:
+      return (
+        <StartTransfer
+          state={props.state}
+          dispatch={props.dispatch}
+          contractType={props.contractType}
+          appId={props.appId}
+          setAcceptRef={props.setAcceptRef}
+        />
+      );
+    case 2:
+      return (
+        <AcceptParams
+          contractType={props.contractType}
+          state={props.state}
+          acceptPrice={props.acceptPrice}
+          closeModal={props.closeModal}
+        />
+      );
+    default:
+      return <div />;
+  }
+};
+
+const ConnectWallet = ({ dispatch }: any) => {
+  const makeError = () => dispatch({ type: MODAL_ACTIONS.ERROR_OUT });
+  const setAccount = (acc: any) => dispatch({ type: MODAL_ACTIONS.SET_ACCOUNT, payload: acc });
+
+  const handleMyAlgoConnect = async () => {
+    try {
+      stdlib.setWalletFallback(
+        stdlib.walletFallback({
+          providerEnv: conf.network,
+          MyAlgoConnect,
+        })
+      );
+
+      setAccount(await stdlib.getDefaultAccount());
+    } catch (e) {
+      console.log(e);
+      makeError();
+    }
+  };
+
+  const handleWalletConnect = async () => {
+    try {
+      stdlib.setWalletFallback(
+        stdlib.walletFallback({
+          providerEnv: conf.network,
+          WalletConnect,
+        })
+      );
+
+      setAccount(await stdlib.getDefaultAccount());
+    } catch (e) {
+      console.log(e);
+      makeError();
+    }
+  };
+
+  return (
+    <>
+      <ModalFormTitle title="Step 1: Connect Wallet" />
+      <div className="flex-grow flex flex-col items-center justify-center">
+        <div className="md:w-2/3">
+          <button
+            onClick={handleMyAlgoConnect}
+            className="syne text-lg text-center mb-3 bg-gray-800 hover:bg-gray-900 text-white rounded-lg p-3 w-full"
+          >
+            My Algo Wallet
+          </button>
+          <button
+            onClick={handleWalletConnect}
+            className="syne text-lg text-center mb-3 bg-gray-800 hover:bg-gray-900 text-white rounded-lg p-3 w-full"
+          >
+            Wallet Connect
+          </button>
+        </div>
+      </div>
+    </>
+  );
+};
+
+type StartTransferProps = {
+  appId: number;
+  contractType: CONTRACT_TYPES;
+  state: ModalState;
+  dispatch: React.Dispatch<{ type: MODAL_ACTIONS; payload?: any }>;
+  setAcceptRef: any;
+};
+const StartTransfer = ({
+  contractType,
+  appId,
+  state,
+  dispatch,
+  setAcceptRef,
+}: StartTransferProps) => {
+  const makeError = () => dispatch({ type: MODAL_ACTIONS.ERROR_OUT });
+  const makeTimeout = () => dispatch({ type: MODAL_ACTIONS.TIME_OUT });
+  const makeProceed = () => dispatch({ type: MODAL_ACTIONS.PROCEED_STEP });
+  const makeSetSwap = (params: any) => dispatch({ type: MODAL_ACTIONS.SET_SWAP, payload: params });
+
+  const startTransfer = async () => {
+    try {
+      const backend = contractType === CONTRACT_TYPES.ATOMIC ? AtomicTransfer : SafeTransfer;
+      const ctc = await state.account.contract(backend, appId);
+
+      const bobInterface = {
+        seeTimeout: () => {
+          makeTimeout();
+        },
+
+        seeTransfer: () => {
+          console.log("seeTransfer");
+          makeProceed();
+        },
+
+        acceptSwap: async (transferParams: any) => {
+          // Accept the NFT
+          const asa =
+            contractType === CONTRACT_TYPES.ATOMIC ? transferParams.tokenA : transferParams.token;
+          await state.account.tokenAccept(asa);
+
+          makeSetSwap({ transferParams, contractType });
+
+          return await new Promise<boolean>((resolve) => {
+            setAcceptRef(resolve);
+          });
+        },
+      };
+
+      backend.Bob(ctc, bobInterface);
+    } catch (e) {
+      console.log(e);
+      makeError();
+    }
+  };
+
+  return (
+    <>
+      <ModalFormTitle title="Step 2: Start the Transfer" />
+      <ModalFormAlert type="warning">
+        This is an experimental feature, your funds may be lost forever.
+      </ModalFormAlert>
+
+      <div className="flex-grow flex flex-col items-center justify-center">
+        <button
+          onClick={startTransfer}
+          className="px-5 py-4 shadow-lg rounded-lg bg-green-800 syne text-white"
+        >
+          I know the risks, start the transfer
+        </button>
+      </div>
+    </>
+  );
+};
+
+type AcceptParamsProps = {
+  state: ModalState;
+  contractType: CONTRACT_TYPES;
+  acceptPrice: any;
+  closeModal: any;
+};
+const AcceptParams = ({ state, contractType, acceptPrice, closeModal }: AcceptParamsProps) => {
+  return (
+    <>
+      <ModalFormTitle title="Step 3: Accept the Parameters" />
+      <div className="bg-white text-center syne p-4 text-2xl rounded-lg shadow-lg">
+        <p> NFT ID: {state.swap.tokenA.toString()}</p>
+        {contractType === CONTRACT_TYPES.ATOMIC ? (
+          <>
+            <p className="">Price {stdlib.formatCurrency(state.swap.amountB, 4)} TOKENS</p>
+            <small className="">Token ID: {state.swap.tokenB.toString()}</small>
+          </>
+        ) : (
+          <p className="">Price {stdlib.formatCurrency(state.swap.amountB, 4)} ALGO</p>
+        )}
+      </div>
+      <div className="w-full flex justify-evenly mt-5">
+        <button
+          className="syne p-2 mb-2 flex-1 mr-1 ml-3 rounded bg-green-800 text-white hover:bg-green-700"
+          onClick={acceptPrice}
+        >
+          Accept
+        </button>
+
+        <button
+          className="syne p-2 mb-2 flex-1 mr-1 ml-3 rounded bg-red-800 text-white hover:bg-red-700"
+          onClick={closeModal}
+        >
+          Reject
+        </button>
+      </div>
+    </>
+  );
+};
+
+export default BuyerModal;

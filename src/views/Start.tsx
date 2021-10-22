@@ -4,7 +4,7 @@ import { VIEWS } from "../constants";
 import AppContext from "../context/appContext";
 
 import Reach from "../assets/Reach.svg";
-import GetModal from "../components/GetModal";
+import BuyerModal from "../components/GetModal";
 
 const Start = () => {
   const appContext = useContext(AppContext);
@@ -56,7 +56,7 @@ const Start = () => {
           </div>
         </div>
       </div>
-      {showGetModal && <GetModal appId={parseInt(appId)} close={handleGetModal(false)} />}
+      {showGetModal && <BuyerModal appId={appId} close={handleGetModal(false)} />}
       {showModal && <WalletModal close={handleCloseModal} />}
     </div>
   );

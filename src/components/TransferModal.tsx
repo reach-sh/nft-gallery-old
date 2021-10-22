@@ -1,213 +1,499 @@
 // REACH
 import MyAlgoConnect from "@reach-sh/stdlib/ALGO_MyAlgoConnect";
+import WalletConnect from "@reach-sh/stdlib/ALGO_WalletConnect";
+
+import { CopyToClipboard } from "react-copy-to-clipboard";
+
 import { conf } from "../lib/config";
 import { loadStdlib } from "@reach-sh/stdlib";
 
 import Modal from "./Modal";
-import { Step, StepButton, StepTitle } from "./ModalHelpers";
-import { useState } from "react";
+import { useState, useReducer, useEffect } from "react";
+import {
+  ModalFormAlert,
+  ModalFormTitle,
+  ModalFormProgressButton,
+  ModalFormTextInput,
+  ModalFormCheckbox,
+  ModalFormPriceInput,
+} from "./ModalForm";
 
 const SafeTransfer = require("../contracts/build/safeTransfer.main.mjs");
 const AtomicTransfer = require("../contracts/build/atomicTransfer.main.mjs");
 
 const stdlib = loadStdlib("ALGO");
 
-stdlib.setWalletFallback(
-  stdlib.walletFallback({
-    providerEnv: conf.network,
-    MyAlgoConnect,
-  })
-);
+enum MODAL_ACTIONS {
+  MAKE_READY,
+  PROCEED_STEP,
+  ERROR_OUT,
+  TIME_OUT,
+  CLEAR_ERRORS,
+  SET_ACCOUNT,
+  SET_CONTRACT_TYPE,
+  SET_APPID,
+}
 
-type TranferModalProps = {
+enum CONTRACT_TYPES {
+  SAFE,
+  ATOMIC,
+}
+
+type ModalState = {
+  step: number;
+  ready: boolean;
+  timeout: boolean;
+  error: boolean;
+  account: any;
+  swap: any;
+  appId?: string;
+  contractType?: CONTRACT_TYPES;
+};
+
+function reducer(state: ModalState, action: { type: MODAL_ACTIONS; payload?: any }) {
+  switch (action.type) {
+    case MODAL_ACTIONS.MAKE_READY:
+      return {
+        ...state,
+        ready: true,
+      };
+
+    case MODAL_ACTIONS.PROCEED_STEP:
+      return {
+        ...state,
+        step: state.step + 1,
+        ready: false,
+      };
+
+    case MODAL_ACTIONS.TIME_OUT:
+      return {
+        ...state,
+        timeout: true,
+      };
+
+    case MODAL_ACTIONS.ERROR_OUT:
+      return {
+        ...state,
+        error: true,
+      };
+
+    case MODAL_ACTIONS.CLEAR_ERRORS:
+      return {
+        ...state,
+        error: false,
+        timeout: false,
+      };
+    case MODAL_ACTIONS.SET_ACCOUNT:
+      if (action.payload == null) throw new Error("Account payload is falsy");
+
+      return {
+        ...state,
+        account: action.payload,
+        ready: true,
+      };
+    case MODAL_ACTIONS.SET_CONTRACT_TYPE:
+      if (action.payload == null) throw new Error("Contract type payload is falsy");
+
+      return {
+        ...state,
+        contractType: action.payload,
+      };
+    case MODAL_ACTIONS.SET_APPID:
+      if (action.payload == null) throw new Error("App ID payload is falsy");
+
+      return {
+        ...state,
+        appId: action.payload,
+      };
+    default:
+      return state;
+  }
+}
+
+const initialState: ModalState = {
+  step: 0,
+  ready: false,
+  timeout: false,
+  error: false,
+  account: null,
+  swap: null,
+};
+
+const useForm = (initialValues: any) => {
+  const [values, setValues] = useState<any>(initialValues);
+  const handleChange = (key: string, value: any) => {
+    setValues({
+      ...values,
+      [key]: value,
+    });
+  };
+
+  return [values, handleChange];
+};
+
+type TransferModalProps = {
   nftId: number;
   close: () => void;
 };
 
-const TransferModal = (props: TranferModalProps) => {
-  const [withTokens, setWithTokens] = useState<boolean>(false);
-  const handleSetWithTokens = (e: any) => setWithTokens(e.target.checked);
+const TransferModal = (props: TransferModalProps) => {
+  const [state, dispatch] = useReducer(reducer, initialState);
+  const [transferDetails, setTransferDetails] = useForm({
+    withTokens: false,
+    tokenId: 0,
+    free: false,
+    amount: 0,
+    timeout: 60,
+  });
 
-  const [tokenId, setTokenId] = useState<number>(0);
-  const handleSetTokenId = (e: any) => setTokenId(e.target.value);
-
-  const [free, setFree] = useState<boolean>(false);
-  const handleSetFree = (e: any) => setFree(e.target.checked);
-
-  const [amount, setAmount] = useState<number>(0);
-  const handleSetAmount = (e: any) => setAmount(e.target.value);
-
-  const [ctcHandle, setCtcHandle] = useState<any>(null);
-
-  const [timeout, setTimeout] = useState<number>(60);
-  const handleSetTimeout = (e: any) => setTimeout(e.target.value);
-
-  const [step, setStep] = useState<number>(0);
-  // TODO: Add time out view
-  const [timedOut, setTimedOut] = useState<boolean>(false);
-
-  const [acc, setAcc] = useState<any>(null);
-  const [ctc, setCtc] = useState<any>(null);
-
-  const validateFields = () => {
-    // TODO: Implement this
-    return true;
+  const handleOutClick = () => {
+    dispatch({ type: MODAL_ACTIONS.CLEAR_ERRORS });
+    props.close();
   };
 
-  const confirmParams = () => {
-    if (validateFields()) setStep((prevState) => prevState + 1);
-    // TODO: In else statement set error state
-  };
+  if (state.error)
+    return (
+      <Modal outClick={handleOutClick}>
+        <div className="text-2xl text-white text-center p-6 my-6">
+          <span className="material-icons transform scale-150 mb-4">error</span>
+          <h2 className="syne">
+            An error occured while transferring.
+            <br />
+            Please refresh and try again.
+          </h2>
+        </div>
+      </Modal>
+    );
 
-  const connectWallet = async () => {
+  return (
+    <Modal outClick={props.close}>
+      <div style={{ minHeight: "40vh" }} className="overflow-y-auto flex flex-col">
+        <FormSwitcher
+          nftId={props.nftId}
+          closeModal={props.close}
+          state={state}
+          dispatch={dispatch}
+          transferDetails={transferDetails}
+          setTransferDetails={setTransferDetails}
+        />
+      </div>
+
+      <div style={{ minHeight: "10vh" }} className=" flex justify-around items-center">
+        {state.ready && (
+          <ModalFormProgressButton
+            txt="Next >"
+            state="open"
+            onClick={() => dispatch({ type: MODAL_ACTIONS.PROCEED_STEP })}
+          />
+        )}
+      </div>
+    </Modal>
+  );
+};
+
+type FormSwitcherProps = {
+  nftId: number;
+  state: ModalState;
+  dispatch: React.Dispatch<{ type: MODAL_ACTIONS; payload?: any }>;
+  closeModal: any;
+  transferDetails: any;
+  setTransferDetails: any;
+};
+const FormSwitcher = (props: FormSwitcherProps) => {
+  switch (props.state.step) {
+    case 0:
+      return <ConnectWallet state={props.state} dispatch={props.dispatch} />;
+    case 1:
+      return (
+        <SetTransferDetails
+          dispatch={props.dispatch}
+          nftId={props.nftId}
+          state={props.state}
+          transferDetails={props.transferDetails}
+          setTransferDetails={props.setTransferDetails}
+        />
+      );
+    case 2:
+      return (
+        <StartTransfer
+          nftId={props.nftId}
+          state={props.state}
+          dispatch={props.dispatch}
+          transferDetails={props.transferDetails}
+          setTransferDetails={props.setTransferDetails}
+        />
+      );
+    case 3:
+      return <ShareInfo state={props.state} dispatch={props.dispatch} />;
+    case 4:
+      return <WaitForBob />;
+    default:
+      return <div />;
+  }
+};
+
+const ConnectWallet = ({ dispatch }: any) => {
+  const makeError = () => dispatch({ type: MODAL_ACTIONS.ERROR_OUT });
+  const setAccount = (acc: any) => dispatch({ type: MODAL_ACTIONS.SET_ACCOUNT, payload: acc });
+
+  const handleMyAlgoConnect = async () => {
     try {
-      setAcc(await stdlib.getDefaultAccount());
-      setStep((prevState) => prevState + 1);
+      stdlib.setWalletFallback(
+        stdlib.walletFallback({
+          providerEnv: conf.network,
+          MyAlgoConnect,
+        })
+      );
+
+      setAccount(await stdlib.getDefaultAccount());
     } catch (e) {
       console.log(e);
+      makeError();
     }
   };
 
-  const deployContract = async () => {
+  const handleWalletConnect = async () => {
     try {
-      const ctc = await acc.deploy(withTokens ? AtomicTransfer : SafeTransfer);
-      console.log("GOT ctc", JSON.stringify(ctc).slice(0, 15));
-      setCtc(ctc);
+      stdlib.setWalletFallback(
+        stdlib.walletFallback({
+          providerEnv: conf.network,
+          WalletConnect,
+        })
+      );
 
-      setStep((prevState) => prevState + 1);
+      setAccount(await stdlib.getDefaultAccount());
     } catch (e) {
       console.log(e);
+      makeError();
     }
   };
+
+  return (
+    <>
+      <ModalFormTitle title="Step 1: Connect Wallet" />
+      <div className="flex-grow flex flex-col items-center justify-center">
+        <div className="md:w-2/3">
+          <button
+            onClick={handleMyAlgoConnect}
+            className="syne text-lg text-center mb-3 bg-gray-800 hover:bg-gray-900 text-white rounded-lg p-3 w-full"
+          >
+            My Algo Wallet
+          </button>
+          <button
+            onClick={handleWalletConnect}
+            className="syne text-lg text-center mb-3 bg-gray-800 hover:bg-gray-900 text-white rounded-lg p-3 w-full"
+          >
+            Wallet Connect
+          </button>
+        </div>
+      </div>
+    </>
+  );
+};
+
+type SetTransferDetailsProps = {
+  nftId: number;
+  state: ModalState;
+  dispatch: React.Dispatch<{ type: MODAL_ACTIONS; payload?: any }>;
+  transferDetails: any;
+  setTransferDetails: any;
+};
+const SetTransferDetails = ({
+  nftId,
+  state,
+  dispatch,
+  transferDetails,
+  setTransferDetails,
+}: SetTransferDetailsProps) => {
+  useEffect(() => {
+    dispatch({ type: MODAL_ACTIONS.MAKE_READY });
+  }, [dispatch]);
+
+  useEffect(() => {
+    dispatch({
+      type: MODAL_ACTIONS.SET_CONTRACT_TYPE,
+      payload: transferDetails.withTokens ? CONTRACT_TYPES.ATOMIC : CONTRACT_TYPES.SAFE,
+    });
+  }, [dispatch, transferDetails.withTokens]);
+
+  const handleChangeTarget = (f: string) => (v: any) => setTransferDetails(f, v);
+  const handleChangeChecked = (f: string) => (_e: any) =>
+    setTransferDetails(f, !transferDetails[f]);
+
+  return (
+    <>
+      <ModalFormTitle title="Step 2: Set Transfer Details" />
+      <p className="text-center text-2xl syne my-4">NFT ID: {nftId}</p>
+      <div className="inline-flex justify-center w-full my-3">
+        <ModalFormCheckbox
+          st={transferDetails.free}
+          setSt={handleChangeChecked("free")}
+          label="Free"
+        />
+        <div className="w-2 sm:w-8 lg:w-16" />
+        <ModalFormCheckbox
+          st={transferDetails.withTokens}
+          setSt={handleChangeChecked("withTokens")}
+          label="Use ASA"
+          disabled={transferDetails.free}
+        />
+      </div>
+
+      <ModalFormTextInput
+        label="Token ID"
+        placeholder="ID of the ASA"
+        st={transferDetails.tokenId}
+        setSt={handleChangeTarget("tokenId")}
+        type="number"
+        disabled={!transferDetails.withTokens || transferDetails.free}
+      />
+
+      <ModalFormTextInput
+        label="Timeout"
+        placeholder="ID of the ASA"
+        st={transferDetails.timeout}
+        setSt={handleChangeTarget("timeout")}
+        type="number"
+      />
+
+      <ModalFormPriceInput
+        st={transferDetails.amount}
+        setSt={handleChangeTarget("amount")}
+        placeholder=""
+        label="Amount"
+        disabled={transferDetails.free}
+        tokens={transferDetails.withTokens}
+      />
+    </>
+  );
+};
+
+type StartTransferProps = {
+  nftId: number;
+  state: ModalState;
+  dispatch: React.Dispatch<{ type: MODAL_ACTIONS; payload?: any }>;
+  transferDetails: any;
+  setTransferDetails: any;
+};
+const StartTransfer = ({
+  nftId,
+  state,
+  dispatch,
+  transferDetails,
+  setTransferDetails,
+}: StartTransferProps) => {
+  const makeError = () => dispatch({ type: MODAL_ACTIONS.ERROR_OUT });
+  const makeTimeout = () => dispatch({ type: MODAL_ACTIONS.TIME_OUT });
+  const makeProceed = () => dispatch({ type: MODAL_ACTIONS.PROCEED_STEP });
+  const makeSetAppId = (appId: string) =>
+    dispatch({ type: MODAL_ACTIONS.SET_APPID, payload: appId });
 
   const startTransfer = async () => {
     try {
       const aliceInterface = {
         seeTimeout: () => {
-          setTimedOut(true);
+          makeTimeout();
         },
         seeTransfer: () => {
-          setStep((prevState) => prevState + 1);
+          makeProceed();
         },
-        getSwap: withTokens
-          ? () => {
-              setStep((prevState) => prevState + 1);
-              return {
-                tokenA: props.nftId,
+        getSwap: () =>
+          transferDetails.withTokens
+            ? {
+                tokenA: nftId,
                 amountA: 1,
-                tokenB: tokenId,
-                amountB: amount,
-                time: timeout,
-              };
-            }
-          : () => {
-              setStep((prevState) => prevState + 1);
-              return {
-                token: props.nftId,
+                tokenB: transferDetails.tokenId,
+                amountB: transferDetails.amount,
+                time: transferDetails.timeout,
+              }
+            : {
+                token: nftId,
                 amountToken: 1,
-                amountAlgo: stdlib.parseCurrency(amount),
-                time: timeout,
-              };
-            },
+                amountAlgo: stdlib.parseCurrency(transferDetails.amount),
+                time: transferDetails.timeout,
+              },
       };
+      const backend = transferDetails.withTokens ? AtomicTransfer : SafeTransfer;
 
-      (withTokens ? AtomicTransfer : SafeTransfer).Alice(ctc, aliceInterface);
-
+      const ctc = await state.account.contract(backend);
+      console.log("Deployed contract");
+      backend.Alice(ctc, aliceInterface);
       const ctcInfo = await ctc.getInfo();
-      console.log("GOT ctcInfo", ctcInfo);
-      setCtcHandle(ctcInfo);
+      console.log("Got contract info", ctcInfo);
 
-      setStep((prevState) => prevState + 1);
-    } catch (e) {}
+      makeSetAppId((transferDetails.withTokens ? "a" : "s") + ctcInfo.toString());
+      makeProceed();
+    } catch (e) {
+      console.log(e);
+      makeError();
+    }
   };
 
   return (
-    <Modal outClick={props.close}>
-      <button className="relative text-white self-end -right-3" onClick={props.close}>
-        <span className="material-icons">close</span>
-      </button>
-      <Step active={step === 0}>
-        <div className="flex justify-between">
-          <StepTitle txt="Step One: Connect Wallet" extraStyle="self-center" />
-          <StepButton fn={connectWallet} disabled={step > 0} txt="Connect Wallet" />
-        </div>
-      </Step>
-      <Step active={step === 1}>
-        <StepTitle txt="Step Two: Set Transfer Params" extraStyle="text-center" />
+    <>
+      <ModalFormTitle title="Step 3: Start the Transfer" />
+      <ModalFormAlert type="warning">
+        This is an experimental feature, your funds may be lost forever.
+      </ModalFormAlert>
 
-        <div className="flex my-2 mt-3">
-          <p className="syne font-bold text-lg mr-5">Price</p>
-        </div>
-
-        <div className="flex bg-gray-500 rounded py-1 px-2 flex-wrap justify-around">
-          <div className="flex my-2">
-            <input type="checkbox" checked={free} onChange={handleSetFree} />
-            <p className="anaheim font-bold text-lg mx-2">Free</p>
-          </div>
-
-          <div className="flex my-2">
-            <input
-              className="rounded px-3 w-20 mx-3"
-              type="number"
-              disabled={!withTokens}
-              value={tokenId}
-              onChange={handleSetTokenId}
-              placeholder="Token ID"
-            />
-            <input type="checkbox" checked={withTokens} onChange={handleSetWithTokens} />
-            <p className="anaheim font-bold text-lg mx-2">Use Tokens</p>
-          </div>
-
-          <div className="flex my-2">
-            <input
-              className="rounded text-black px-3 mx-3 anaheim text-lg w-24"
-              type="number"
-              disabled={free}
-              value={amount}
-              onChange={handleSetAmount}
-            />
-            <p className="anaheim font-bold text-lg mx-2">{withTokens ? "TOKENS" : "ALGO"}</p>
-          </div>
-        </div>
-
-        <div className="flex my-2 mt-3">
-          <p className="syne font-bold text-lg mr-5">Timeout</p>
-        </div>
-
-        <div className="flex bg-gray-500 rounded py-1 px-2 flex-wrap justify-around ">
-          <div className="flex my-2">
-            <input
-              className="rounded px-3 mx-3 text-black anaheim text-lg w-24"
-              type="number"
-              value={timeout}
-              onChange={handleSetTimeout}
-            />
-            <p className="anaheim font-bold text-lg mx-2">SECONDS</p>
-          </div>
-        </div>
-
-        <StepButton fn={confirmParams} txt="Confirm Details" disabled={!(step === 1)} />
-      </Step>
-      <Step active={step === 2}>
-        <div className="flex justify-between">
-          <StepTitle txt="Step Three: Deploy Contract" extraStyle="self-center" />
-          <StepButton fn={deployContract} txt="Deploy Contract" disabled={!(step === 2)} />
-        </div>
-      </Step>
-      <Step active={step === 3}>
-        <div className="flex justify-between">
-          {ctcHandle && <StepTitle txt={"Share this with receiver: " + ctcHandle} />}
-          <StepTitle txt="Step Four: Start Transfer" extraStyle="self-center" />
-          <StepButton fn={startTransfer} txt="Start Transfer" disabled={!(step === 3)} />
-        </div>
-      </Step>
-      <Step active={step === 4}>
-        <StepTitle txt="Step Five: Send NFT" />
-      </Step>
-      <Step active={step === 5}>
-        <StepTitle txt="Step Six: Wait For Transfer" />
-      </Step>
-    </Modal>
+      <div className="flex-grow flex flex-col items-center justify-center">
+        <button
+          onClick={startTransfer}
+          className="px-5 py-4 shadow-lg rounded-lg bg-green-800 syne text-white"
+        >
+          I know the risks, start the transfer
+        </button>
+      </div>
+    </>
   );
 };
+
+type ShareInfoProps = {
+  state: ModalState;
+  dispatch: React.Dispatch<{ type: MODAL_ACTIONS; payload?: any }>;
+};
+const ShareInfo = ({ state, dispatch }: ShareInfoProps) => {
+  useEffect(() => {
+    dispatch({ type: MODAL_ACTIONS.MAKE_READY });
+  }, [dispatch]);
+
+  const [copied, setCopied] = useState<boolean>(false);
+
+  const fmtAppId = state.appId ?? "-";
+  return (
+    <>
+      <ModalFormTitle title="Step 4: Share Contract Info" />
+      <ModalFormAlert type="info">
+        The recipient will use this information to receive the NFT
+        <br />
+        If you somehow lose it, find the application ID from AlgoExplorer and prepend "a" for token
+        sale and "s" for standard sale
+      </ModalFormAlert>
+      <div className="inline-flex justify-evenly syne text-xl">
+        <p className="self-center text-white">App ID: {fmtAppId}</p>
+        <CopyToClipboard
+          text={fmtAppId}
+          onCopy={() => {
+            setCopied(true);
+          }}
+        >
+          <button className="rounded-lg shadow-lg p-3 bg-gray-800 text-white hover:bg-gray-700">
+            {!copied ? "Copy" : "Copied"}
+          </button>
+        </CopyToClipboard>
+      </div>
+    </>
+  );
+};
+
+const WaitForBob = () => {
+  return (
+    <>
+      <ModalFormTitle title="Step 5: Wait For Transfer" />
+
+      <ModalFormAlert type="info">You can close the modal now</ModalFormAlert>
+    </>
+  );
+};
+
 export default TransferModal;

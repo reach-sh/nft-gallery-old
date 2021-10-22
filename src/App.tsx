@@ -4,6 +4,7 @@ import AppContext from "./context/appContext";
 
 import Library from "./views/Library";
 import Start from "./views/Start";
+import Test from "./components/Test";
 
 function App() {
   const appContext = useContext(AppContext);
@@ -14,6 +15,8 @@ function App() {
       return <Start />;
     case VIEWS.LIBRARY:
       return <Library />;
+    case VIEWS.TEST:
+      return <Test />;
     default:
       return <NotFound />;
   }

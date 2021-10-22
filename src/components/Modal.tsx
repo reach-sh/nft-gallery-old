@@ -10,17 +10,23 @@ const Modal = (props: any) => {
     >
       <div
         className="
-        rounded-xl 
-        w-5/6
-        sm:w-2/3
-        md:w-1/2 
-        xl:w-1/3 p-4 
-      bg-indigo-800
-        shadow-lg
-        z-10
-        self-center
-        flex flex-col justify-center overflow-x-hidden"
-        style={{ maxHeight: "70vw" }}
+            w-10/12
+            sm:w-9/12
+            md:w-8/12
+            lg:w-7/12 
+            xl:w-5/12 
+            
+            bg-indigo-800
+            rounded-xl 
+            self-center
+            shadow-xl
+            
+            p-4 
+            flex flex-col 
+            justify-center 
+            overflow-y-auto
+            overflow-x-hidden"
+        style={{ maxHeight: "70vh" }}
         onClick={stopBubble}
       >
         {props.children}
