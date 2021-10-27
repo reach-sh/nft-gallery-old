@@ -63,6 +63,7 @@ export class NFT {
 
   static async fromToken(token: any): Promise<NFT> {
     const assetId = token.index;
+    console.log(token.params);
     const { name, url, creator, manager, total } = token.params;
     const metadata = await checkLocal(assetId, url);
 
