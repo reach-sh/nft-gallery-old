@@ -1,17 +1,17 @@
 {
   "files": {
     "main.css": "/nft-gallery/static/css/main.4a923c80.chunk.css",
-    "main.js": "/nft-gallery/static/js/main.b9065edb.chunk.js",
-    "main.js.map": "/nft-gallery/static/js/main.b9065edb.chunk.js.map",
+    "main.js": "/nft-gallery/static/js/main.100eca46.chunk.js",
+    "main.js.map": "/nft-gallery/static/js/main.100eca46.chunk.js.map",
     "runtime-main.js": "/nft-gallery/static/js/runtime-main.790d22e6.js",
     "runtime-main.js.map": "/nft-gallery/static/js/runtime-main.790d22e6.js.map",
     "static/css/2.3cfb9f70.chunk.css": "/nft-gallery/static/css/2.3cfb9f70.chunk.css",
-    "static/js/2.01770e40.chunk.js": "/nft-gallery/static/js/2.01770e40.chunk.js",
-    "static/js/2.01770e40.chunk.js.map": "/nft-gallery/static/js/2.01770e40.chunk.js.map",
+    "static/js/2.ea01acca.chunk.js": "/nft-gallery/static/js/2.ea01acca.chunk.js",
+    "static/js/2.ea01acca.chunk.js.map": "/nft-gallery/static/js/2.ea01acca.chunk.js.map",
     "index.html": "/nft-gallery/index.html",
     "static/css/2.3cfb9f70.chunk.css.map": "/nft-gallery/static/css/2.3cfb9f70.chunk.css.map",
     "static/css/main.4a923c80.chunk.css.map": "/nft-gallery/static/css/main.4a923c80.chunk.css.map",
-    "static/js/2.01770e40.chunk.js.LICENSE.txt": "/nft-gallery/static/js/2.01770e40.chunk.js.LICENSE.txt",
+    "static/js/2.ea01acca.chunk.js.LICENSE.txt": "/nft-gallery/static/js/2.ea01acca.chunk.js.LICENSE.txt",
     "static/media/AlgoSigner.abcce80b.svg": "/nft-gallery/static/media/AlgoSigner.abcce80b.svg",
     "static/media/MyAlgoBlue.53c2f7a9.svg": "/nft-gallery/static/media/MyAlgoBlue.53c2f7a9.svg",
     "static/media/Reach.8331c83d.svg": "/nft-gallery/static/media/Reach.8331c83d.svg",
@@ -22,8 +22,8 @@
   "entrypoints": [
     "static/js/runtime-main.790d22e6.js",
     "static/css/2.3cfb9f70.chunk.css",
-    "static/js/2.01770e40.chunk.js",
+    "static/js/2.ea01acca.chunk.js",
     "static/css/main.4a923c80.chunk.css",
-    "static/js/main.b9065edb.chunk.js"
+    "static/js/main.100eca46.chunk.js"
   ]
 }
