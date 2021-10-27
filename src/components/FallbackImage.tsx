@@ -1,5 +1,6 @@
 import { useState } from "react";
 import ItemDisplay from "./ItemDisplay";
+import ReactPlayer from "react-player";
 
 type FallbackImageProps = {
   src: string;
@@ -31,12 +32,11 @@ const FallbackImage = (props: FallbackImageProps) => {
           {props.src}
         </p>
       ) : failed ? (
-        <video
+        <div>
           onClick={goFullscreen}
           className={props.extraStyle}
-          src={props.src}
-          onError={(_e) => handleErrorVideo()}
-        />
+          <ReactPlayer playing={false} onError={(_e) => handleErrorVideo()} src={props.src} />
+        </div>
       ) : (
         <img
           onClick={goFullscreen}
