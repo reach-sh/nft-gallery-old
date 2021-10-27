@@ -5,7 +5,7 @@ import { conf } from "../lib/config";
 import { loadStdlib } from "@reach-sh/stdlib";
 
 import Modal from "./Modal";
-import { useReducer, useRef } from "react";
+import { useReducer, useRef, useState } from "react";
 import { ModalFormAlert, ModalFormTitle, ModalFormProgressButton } from "./ModalForm";
 
 const SafeTransfer = require("../contracts/build/safeTransfer.main.mjs");
@@ -298,6 +298,8 @@ const StartTransfer = ({
   dispatch,
   setAcceptRef,
 }: StartTransferProps) => {
+  const [clicked, setClicked] = useState<boolean>(false);
+
   const makeError = () => dispatch({ type: MODAL_ACTIONS.ERROR_OUT });
   const makeTimeout = () => dispatch({ type: MODAL_ACTIONS.TIME_OUT });
   const makeProceed = () => dispatch({ type: MODAL_ACTIONS.PROCEED_STEP });
@@ -305,6 +307,7 @@ const StartTransfer = ({
 
   const startTransfer = async () => {
     try {
+      setClicked(true);
       const backend = contractType === CONTRACT_TYPES.ATOMIC ? AtomicTransfer : SafeTransfer;
       const ctc = await state.account.contract(backend, appId);
 
@@ -347,12 +350,19 @@ const StartTransfer = ({
       </ModalFormAlert>
 
       <div className="flex-grow flex flex-col items-center justify-center">
-        <button
-          onClick={startTransfer}
-          className="px-5 py-4 shadow-lg rounded-lg bg-green-800 syne text-white"
-        >
-          I know the risks, start the transfer
-        </button>
+        {!clicked ? (
+          <button
+            onClick={startTransfer}
+            className="px-5 py-4 shadow-lg rounded-lg bg-green-800 syne text-white"
+          >
+            I know the risks, start the transfer
+          </button>
+        ) : (
+          <div className="text-2xl syne text-white">
+            <p>You'll now sign 1 transaction</p>
+            <p>- Opting in for the asset</p>
+          </div>
+        )}
       </div>
     </>
   );

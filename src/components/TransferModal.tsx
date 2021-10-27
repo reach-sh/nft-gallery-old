@@ -382,6 +382,8 @@ const StartTransfer = ({
   transferDetails,
   setTransferDetails,
 }: StartTransferProps) => {
+  const [clicked, setClicked] = useState<boolean>(false);
+
   const makeError = () => dispatch({ type: MODAL_ACTIONS.ERROR_OUT });
   const makeTimeout = () => dispatch({ type: MODAL_ACTIONS.TIME_OUT });
   const makeProceed = () => dispatch({ type: MODAL_ACTIONS.PROCEED_STEP });
@@ -390,6 +392,8 @@ const StartTransfer = ({
 
   const startTransfer = async () => {
     try {
+      setClicked(true);
+
       const aliceInterface = {
         seeTimeout: () => {
           makeTimeout();
@@ -416,10 +420,8 @@ const StartTransfer = ({
       const backend = transferDetails.withTokens ? AtomicTransfer : SafeTransfer;
 
       const ctc = await state.account.contract(backend);
-      console.log("Deployed contract");
       backend.Alice(ctc, aliceInterface);
       const ctcInfo = await ctc.getInfo();
-      console.log("Got contract info", ctcInfo);
 
       makeSetAppId((transferDetails.withTokens ? "a" : "s") + ctcInfo.toString());
       makeProceed();
@@ -437,12 +439,21 @@ const StartTransfer = ({
       </ModalFormAlert>
 
       <div className="flex-grow flex flex-col items-center justify-center">
-        <button
-          onClick={startTransfer}
-          className="px-5 py-4 shadow-lg rounded-lg bg-green-800 syne text-white"
-        >
-          I know the risks, start the transfer
-        </button>
+        {!clicked ? (
+          <button
+            onClick={startTransfer}
+            className="px-5 py-4 shadow-lg rounded-lg bg-green-800 syne text-white"
+          >
+            I know the risks, start the transfer
+          </button>
+        ) : (
+          <div className="text-2xl syne text-white">
+            <p>You'll now sign 3 transactions</p>
+            <p>- Registering the app</p>
+            <p>- Setting transfer parameters</p>
+            <p>- Sending the NFT to the contract</p>
+          </div>
+        )}
       </div>
     </>
   );
