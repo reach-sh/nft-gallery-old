@@ -38,3 +38,17 @@ body {
 .anaheim {
   font-family: "Anaheim", sans-serif;
 }
+
+.react-tagsinput-tag {
+  background-color: rgba(67, 56, 202, var(--tw-bg-opacity));
+  border-radius: 10px;
+  border: transparent;
+  color: white;
+  display: inline-block;
+  font-family: "Syne", sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  margin-bottom: 5px;
+  margin-right: 5px;
+  padding: 5px 10px 5px 10px;
+}

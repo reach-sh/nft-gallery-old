@@ -1,6 +1,7 @@
-// REACH
 import MyAlgoConnect from "@reach-sh/stdlib/ALGO_MyAlgoConnect";
+import MyAlgoLogo from "../assets/MyAlgoBlue.svg";
 import WalletConnect from "@reach-sh/stdlib/ALGO_WalletConnect";
+import WalletConnectLogo from "../assets/WalletConnect.svg";
 
 import { CopyToClipboard } from "react-copy-to-clipboard";
 
@@ -275,14 +276,16 @@ const ConnectWallet = ({ dispatch }: any) => {
         <div className="md:w-2/3">
           <button
             onClick={handleMyAlgoConnect}
-            className="syne text-lg text-center mb-3 bg-gray-800 hover:bg-gray-900 text-white rounded-lg p-3 w-full"
+            className="syne inline-flex justify-around text-lg text-center mb-3 bg-gray-800 hover:bg-gray-900 text-white rounded-lg p-3 w-full items-center"
           >
+            <img src={MyAlgoLogo} alt="My Algo Logo" className="w-10" />
             My Algo Wallet
           </button>
           <button
             onClick={handleWalletConnect}
-            className="syne text-lg text-center mb-3 bg-gray-800 hover:bg-gray-900 text-white rounded-lg p-3 w-full"
+            className="syne inline-flex justify-around text-lg text-center mb-3 bg-gray-800 hover:bg-gray-900 text-white rounded-lg p-3 w-full items-center"
           >
+            <img src={WalletConnectLogo} alt="My Algo Logo" className="w-10" />
             Wallet Connect
           </button>
         </div>
@@ -420,7 +423,7 @@ const StartTransfer = ({
       const backend = transferDetails.withTokens ? AtomicTransfer : SafeTransfer;
 
       const ctc = await state.account.contract(backend);
-      backend.Alice(ctc, aliceInterface);
+      ctc.p.Alice(aliceInterface);
       const ctcInfo = await ctc.getInfo();
 
       makeSetAppId((transferDetails.withTokens ? "a" : "s") + ctcInfo.toString());
