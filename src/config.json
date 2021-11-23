@@ -1,6 +1,6 @@
 {
     "ipfsGateway": "https://cloudflare-ipfs.com/ipfs/",
-    "blockExplorer": "https://testnet.algoexplorer.io/",
-    "algod": "https://testnet.algoexplorerapi.io",
-    "network": "TestNet"
+    "blockExplorer": "https://algoexplorer.io/",
+    "algod": "https://algoexplorerapi.io",
+    "network": "MainNet"
 }
