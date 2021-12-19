@@ -11,6 +11,7 @@ type Config = {
 const configMain = require("../configMain.json") as Config;
 const configTest = require("../configTest.json") as Config;
 
-const config = getStorageItem("test", "false") ? configTest : configMain;
+const isTest = getStorageItem("test", "false");
+const config = isTest === "main" ? configMain : configTest;
 
 export { configMain, configTest, config };
