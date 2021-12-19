@@ -1,4 +1,3 @@
-import { getToken } from "./algoHelpers";
 import { conf } from "./config";
 import { getFromIPFS } from "./ipfs";
 
@@ -26,54 +25,42 @@ export function resolveURL(url: string | undefined): string {
 }
 
 export class NFT {
-  url: string;
-  name: string;
-  creator: string;
-  owner: string;
-  count: number;
-  assetId: number;
-  arc3: boolean;
+  public url: string = "";
+  public name: string = "";
+  public creator: string = "";
+  public owner: string = "";
+  public count: number = 0;
+  public assetId: number = 0;
+  public arc3: boolean = false;
 
-  metadata: NFTMetadata;
+  metadata: NFTMetadata | undefined = undefined;
 
-  constructor(
-    md: NFTMetadata,
-    assetId?: number,
-    name?: string,
-    url?: string,
-    creator?: string,
-    owner?: string,
-    count?: number,
-    arc3?: boolean
-  ) {
-    this.assetId = assetId ?? 0;
-    this.metadata = md;
-    this.url = url ?? "";
-    this.name = name ?? "";
-    this.creator = creator ?? "";
-    this.owner = owner ?? "";
-    this.count = count ?? 0;
-    this.arc3 = arc3 ?? false;
+  constructor(owner: string, args: any = {}) {
+    this.owner = owner;
+    Object.assign(this, args);
   }
 
-  static async fromAssetId(assetId: number): Promise<NFT> {
-    const token = await getToken(assetId);
-    return NFT.fromToken(token);
-  }
-
-  static async fromToken(token: any): Promise<NFT> {
+  static async fromToken(owner: string, token: any): Promise<NFT> {
     const assetId = token.index;
-    console.log(token.params);
-    const { name, url, creator, manager, total } = token.params;
+    const { name, url, creator, total } = token.params;
     const metadata = await checkLocal(assetId, url);
 
-    return new NFT(metadata, assetId, name, url, creator, manager, total, this.isArc3(token));
+    return new NFT(owner, {
+      url: url,
+      name: name,
+      creator: creator,
+      owner: owner,
+      count: total,
+      assetId: assetId,
+      arc3: this.isArc3(token),
+      metadata: metadata,
+    });
   }
 
   imgURL(): string {
-    const url = resolveURL(this.arc3 ? this.metadata.image : this.url);
+    const url = resolveURL(this.arc3 ? this.metadata?.image : this.url);
 
-    if (url !== this.metadata.image) {
+    if (url !== this.metadata?.image) {
       return url;
     }
 
@@ -83,11 +70,6 @@ export class NFT {
     }
 
     return "";
-  }
-
-  // TODO: Implement this
-  static getType(arc3: boolean, metadata: NFTMetadata, url: string) {
-    // const targetUrl = resolveURL(arc3 ? metadata.image : url);
   }
 
   static isArc3(token: any): boolean {
@@ -103,7 +85,6 @@ export class NFTMetadata {
   decimals?: number = 0;
   image_integrity?: string = "";
   image_mimetype?: string = "";
-
   properties?: Properties;
 
   constructor(args: any = {}) {
@@ -111,7 +92,9 @@ export class NFTMetadata {
   }
 
   toFile(): File {
-    const md_blob = new Blob([JSON.stringify({ ...this }, null, 2)], { type: "application/json" });
+    const md_blob = new Blob([JSON.stringify({ ...this }, null, 2)], {
+      type: "application/json",
+    });
     return new File([md_blob], METADATA_FILE);
   }
 
@@ -136,7 +119,7 @@ type NFTMetadataFields = {
   properties?: Properties;
 };
 
-const save = (assetId: number, md: NFTMetadata): NFTMetadata => {
+function saveMdToLocal(assetId: number, md: NFTMetadata): NFTMetadata {
   const mdCache = JSON.parse(localStorage.getItem("mds") ?? "{}");
   const { ...fields }: NFTMetadataFields = md;
 
@@ -144,11 +127,15 @@ const save = (assetId: number, md: NFTMetadata): NFTMetadata => {
   localStorage.setItem("mds", JSON.stringify(mdCache));
 
   return md;
-};
+}
 
-export const checkLocal = async (assetId: number, url: string): Promise<NFTMetadata> => {
+export async function checkLocal(
+  assetId: number,
+  url: string
+): Promise<NFTMetadata> {
   const mdCache = JSON.parse(localStorage.getItem("mds") ?? "[]");
-  if (!mdCache[assetId]) return save(assetId, await getFromIPFS(resolveURL(url)));
+  if (!mdCache[assetId])
+    return saveMdToLocal(assetId, await getFromIPFS(resolveURL(url)));
 
   return new NFTMetadata(mdCache[assetId]);
-};
+}

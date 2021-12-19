@@ -2,9 +2,9 @@ import { useContext } from "react";
 import { VIEWS } from "./constants";
 import AppContext from "./context/appContext";
 
-import Library from "./views/Library";
 import Start from "./views/Start";
 import Test from "./components/Test";
+import Lib from "./views/Lib";
 
 function App() {
   const appContext = useContext(AppContext);
@@ -14,7 +14,7 @@ function App() {
     case VIEWS.START:
       return <Start />;
     case VIEWS.LIBRARY:
-      return <Library />;
+      return <Lib />;
     case VIEWS.TEST:
       return <Test />;
     default:

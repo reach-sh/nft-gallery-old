@@ -4,73 +4,83 @@ import { NFT } from "./nft";
 
 const client = new algosdk.Algodv2("", conf.algod, "");
 
-export const getToken = async (assetId: number): Promise<any> => {
+type OwnerAsaIds = {
+  owner: string;
+  assetIds: any[];
+};
+
+export const getAssetIdsOfAddress = async (
+  address: string
+): Promise<OwnerAsaIds> => {
+  const results = await client.accountInformation(address).do();
+
+  // Filter the assets account has
+  const assetIds = Object.keys(results.assets)
+    .filter((id: any) => results["assets"][id]["amount"] > 0)
+    .map((id: any) => results["assets"][id]["asset-id"]);
+
+  return {
+    owner: address,
+    assetIds,
+  };
+};
+
+export const getASAById = async (assetId: number): Promise<any> => {
   return await client.getAssetByID(assetId).do();
 };
 
-export const getAssetsOfAddress = async (address: string): Promise<any> => {
-  const results = await client.accountInformation(address).do();
-
-  return Object.keys(results.assets)
-    .filter((id: any) => results["assets"][id]["amount"] > 0)
-    .map((id: any) => results["assets"][id]["asset-id"]);
+export const getDetailsOfNft = async (
+  owner: string,
+  assetId: number
+): Promise<NFT> => {
+  const asa = await getASAById(assetId);
+  return await NFT.fromToken(owner, asa);
 };
 
-export const getDetailsOfAsset = async (id: number) => {
-  const token = await getToken(id);
-  return await NFT.fromToken(token);
-};
+export class NFTIterator {
+  private counter: number = 0;
+  private idList: { owner: string; id: number }[];
+  private iterSize: number; // Number of items returned with each next()
+  private done: boolean = false;
 
-export const getDetailsOfAssets = async (ids: number[]) => {
-  const results = [];
-  for (let i = 0; i < ids.length; i++) {
-    const token = await getToken(ids[i]);
-    results.push(await NFT.fromToken(token));
+  constructor(ownerAsaIds: OwnerAsaIds[], iterSize: number) {
+    this.idList = ownerAsaIds.reduce((prev: any[], list: OwnerAsaIds) => {
+      const ids = list.assetIds.map((id) => ({ owner: list.owner, id }));
+      return [...prev, ...ids];
+    }, []);
+
+    this.iterSize = iterSize;
   }
 
-  return results;
-};
-
-export const getCollection = async (address: string, add: (n: NFT) => void): Promise<any> => {
-  const results = await client.accountInformation(address).do();
-
-  // console.log("Got results in", Date.now() - time1);
-
-  const plist = [];
-  for (const a in results["assets"]) {
-    if (results["assets"][a]["amount"] > 0) plist.push(getToken(results["assets"][a]["asset-id"]));
+  isDone() {
+    return this.done;
   }
 
-  const assets = await Promise.all(plist);
+  /**
+   * Return next batch of NFTs
+   * @returns NFTs of length <iterSize>
+   */
+  async next() {
+    const results = [];
 
-  const requests = [];
-  for (let i = 0; i < assets.length; i++) {
-    requests.push(
-      new Promise((resolve) => {
-        NFT.fromToken(assets[i]).then(add).then(resolve);
-      })
-    );
+    for (let i = 0; i < this.iterSize; i++) {
+      if (this.counter + i >= this.idList.length) {
+        this.done = true;
+        break;
+      }
+
+      const asaIdx = this.counter++ + i;
+      const { owner, id } = this.idList[asaIdx];
+
+      const asa = await getASAById(id);
+      results.push(await NFT.fromToken(owner, asa));
+    }
+
+    return results;
   }
+}
 
-  return await Promise.all(requests);
-};
-
-export const getCollectionFromAssetIds = async (ids: number[]): Promise<any> => {
-  const collectionRequests = ids.map((id) => {
-    return NFT.fromAssetId(id);
-  });
-
-  return Promise.all(collectionRequests);
-};
-
-export const getCollectionFromTokens = async (details: any[]): Promise<any> => {
-  const collectionRequests = details.map((detail) => {
-    const token = {
-      index: Object.keys(detail)[0],
-      params: Object.values(detail)[0],
-    };
-    return NFT.fromToken(token);
-  });
-
-  return Promise.all(collectionRequests);
-};
+export const getNFTIterator = (
+  ownerAsaIds: OwnerAsaIds[],
+  iteratorSize: number
+): NFTIterator => new NFTIterator(ownerAsaIds, iteratorSize);
