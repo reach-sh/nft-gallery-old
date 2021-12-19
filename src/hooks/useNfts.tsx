@@ -30,7 +30,8 @@ function useNfts(defs: UseNftDefaults) {
     const scrollHeight = window.innerHeight + window.scrollY;
     if (
       scrollHeight >= document.body.offsetHeight &&
-      nftIteratorRef.current != undefined &&
+      nftIteratorRef.current !== undefined &&
+      nftIteratorRef.current !== null &&
       !nftIteratorRef.current.isDone()
     ) {
       setDone(false);

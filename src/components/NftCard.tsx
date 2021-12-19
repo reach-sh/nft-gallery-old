@@ -1,5 +1,4 @@
 import { CSSProperties, useEffect, useState } from "react";
-import ReactPlayer from "react-player";
 import TagsInput from "react-tagsinput";
 import { selectFrame } from "../assets/frames";
 import { getStorageItem, setStorageItem } from "../lib/helpers";
@@ -83,7 +82,6 @@ const NftCard = (props: NftCardProps) => {
     setTags([...newSet]);
   };
 
-  const [loadError, setLoadError] = useState<boolean>(false);
   const [sizeRatio, setSizeRatio] = useState<number>(0);
   const imgUrl = props.nft.imgURL();
 
@@ -149,7 +147,7 @@ const FallbackContent = (props: {
 }) => {
   const [imageFailed, setImageFailed] = useState<boolean>(false);
   const [videoFailed, setVideoFailed] = useState<boolean>(false);
-  const [audioFailed, setAudioFailed] = useState<boolean>(false);
+  const [audioFailed] = useState<boolean>(false);
 
   const [fullscreen, setFullscreen] = useState<boolean>(false);
 
@@ -182,10 +180,11 @@ const FallbackContent = (props: {
     setVideoFailed(true);
   };
 
-  const handleErrorAudio = () => {
-    console.log("Audio failed for", props.src);
-    setAudioFailed(true);
-  };
+  // TODO: For later
+  // const handleErrorAudio = () => {
+  //   console.log("Audio failed for", props.src);
+  //   setAudioFailed(true);
+  // };
 
   return (
     <>
