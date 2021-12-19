@@ -1,5 +1,5 @@
 {
-    "ipfsGateway": "localhost:8080/",
+    "ipfsGateway": "https://cloudflare-ipfs.com/ipfs/",
     "blockExplorer": "https://testnet.algoexplorer.io/",
     "algod": "https://testnet.algoexplorerapi.io",
     "network": "TestNet"
