@@ -1,4 +1,4 @@
-import { conf } from "./config";
+import { config as conf } from "./config";
 import { getFromIPFS } from "./ipfs";
 
 const ARC3_SUFFIX = "@arc3";

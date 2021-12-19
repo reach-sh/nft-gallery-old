@@ -1,3 +1,5 @@
+import { getStorageItem } from "./helpers";
+
 type Config = {
   network: string;
   algod: string;
@@ -6,6 +8,9 @@ type Config = {
   storageToken: string;
 };
 
-const conf = require("../config.json") as Config;
+const configMain = require("../configMain.json") as Config;
+const configTest = require("../configTest.json") as Config;
 
-export { conf };
+const config = getStorageItem("test", "false") ? configTest : configMain;
+
+export { configMain, configTest, config };

@@ -5,6 +5,8 @@ import { selectFrame } from "../assets/frames";
 import { getStorageItem, setStorageItem } from "../lib/helpers";
 import { NFT } from "../lib/nft";
 
+import Spinner from "../assets/Spinner.svg";
+
 type FileDimensions = {
   height: number;
   width: number;
@@ -120,7 +122,13 @@ const NftCard = (props: NftCardProps) => {
           innerPercentage={innerPercentage}
         />
       </div>
-      <p className="syne text-4xl text-white ml-3 mb-4">{props.nft.name}</p>
+      <p className="syne text-4xl text-white ml-3 mb-1">{props.nft.name}</p>
+      <p className="anaheim text-xl text-white ml-3 mb-3 font-semibold">
+        Owner:{" "}
+        {props.nft.owner.slice(0, 10) +
+          "..." +
+          props.nft.owner.slice(props.nft.owner.length - 6)}
+      </p>
       <TagsInput value={tags} onChange={handleTagChange} />
       <VerticalSpacer height={Math.random() * 400} />
     </>
@@ -182,7 +190,7 @@ const FallbackContent = (props: {
   return (
     <>
       {audioFailed ? (
-        <div onClick={goFullscreen}>{props.src}</div>
+        <img src={Spinner} alt="Loading" />
       ) : videoFailed ? (
         <div>
           <audio

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { setStorageItem } from "../lib/helpers";
 
 type AddressModalProps = {
   addresses: string[];
@@ -18,11 +19,17 @@ const AddressModal = (props: AddressModalProps) => {
   };
 
   const addAddress = () => {
-    props.setAddresses([...props.addresses, curAddr]);
+    const newAccs = [...props.addresses, curAddr];
+
+    setStorageItem("accounts", newAccs, []);
+    props.setAddresses(newAccs);
   };
 
   const rmAddress = (address: string) => {
-    props.setAddresses(props.addresses.filter((addr) => addr !== address));
+    const newAccs = props.addresses.filter((addr) => addr !== address);
+
+    setStorageItem("accounts", newAccs, []);
+    props.setAddresses(newAccs);
   };
 
   return (
@@ -42,7 +49,7 @@ const AddressModal = (props: AddressModalProps) => {
 
         <div className="py-5" />
 
-        <span style={{ width: "70%" }}>
+        <span className="flex" style={{ width: "70%" }}>
           <input
             style={{ width: "80% " }}
             className="bg-black border-white border-4 text-white w-full pl-5"
@@ -52,7 +59,7 @@ const AddressModal = (props: AddressModalProps) => {
           />
           <button
             style={{ width: "20%" }}
-            className="bg-gray-400 hover:text-white text-black border-none h-full syne align-top"
+            className="bg-gray-400 hover:text-white text-black border-none syne align-top"
             onClick={addAddress}
           >
             Enter

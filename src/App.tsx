@@ -4,7 +4,7 @@ import AppContext from "./context/appContext";
 
 import Start from "./views/Start";
 import Test from "./components/Test";
-import Lib from "./views/Lib";
+import Collection from "./views/Collection";
 
 function App() {
   const appContext = useContext(AppContext);
@@ -13,8 +13,8 @@ function App() {
   switch (view) {
     case VIEWS.START:
       return <Start />;
-    case VIEWS.LIBRARY:
-      return <Lib />;
+    case VIEWS.COLLECTION:
+      return <Collection />;
     case VIEWS.TEST:
       return <Test />;
     default:

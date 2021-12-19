@@ -1,5 +1,5 @@
 import algosdk from "algosdk";
-import { conf } from "./config";
+import { config as conf } from "./config";
 import { NFT } from "./nft";
 
 const client = new algosdk.Algodv2("", conf.algod, "");

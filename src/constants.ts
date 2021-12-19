@@ -1,5 +1,5 @@
 export enum VIEWS {
   START = "Start",
-  LIBRARY = "Library",
+  COLLECTION = "Collection",
   TEST = "Test",
 }
