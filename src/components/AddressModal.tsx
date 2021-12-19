@@ -89,7 +89,7 @@ const AddressModal = (props: AddressModalProps) => {
           {props.addresses.map((address) => {
             return (
               <div
-                className="bg-indigo-400 bg-opacity-40 text-white anaheim text-center text-xl transition-colors hover:bg-red-700 w-full"
+                className="bg-indigo-400 bg-opacity-40 my-1 text-white anaheim text-center text-xl transition-colors hover:bg-red-700 w-full"
                 onClick={() => {
                   rmAddress(address);
                 }}
