@@ -100,7 +100,7 @@ const NftCard = (props: NftCardProps) => {
 
   return (
     <>
-      <VerticalSpacer height={3 + Math.random() * 5} />
+      <VerticalSpacer height={3 + Math.random() * 6} />
       <div
         style={{
           height: props.cardLength * ratio + "px",
@@ -193,12 +193,6 @@ const FallbackContent = (props: {
         <img src={Spinner} alt="Loading" />
       ) : videoFailed ? (
         <div>
-          {/* 
-          <audio
-            style={contentStyle}
-            src={props.src}
-            onError={(_e) => handleErrorAudio}
-          /> */}
           <img src={Spinner} alt="Loading" />
         </div>
       ) : imageFailed ? (
