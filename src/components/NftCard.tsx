@@ -60,6 +60,8 @@ const NftCard = (props: NftCardProps) => {
     getStorageItem("tags", "{}")?.[props.nft.assetId] ?? []
   );
 
+  const [offset, setOffset] = useState<number>(0);
+
   const handleTagChange = (newTags: string[]) => {
     const oldSet = new Set(tags);
     const newSet = new Set(newTags);
@@ -94,11 +96,15 @@ const NftCard = (props: NftCardProps) => {
     getRatio();
   }, [imgUrl]);
 
+  useEffect(() => {
+    setOffset(3 + Math.random() * 20);
+  }, [setOffset]);
+
   const { frame, ratio, innerPercentage } = selectFrame(sizeRatio);
 
   return (
     <>
-      <VerticalSpacer height={3 + Math.random() * 6} />
+      <VerticalSpacer height={offset} />
       <div
         style={{
           height: props.cardLength * ratio + "px",
@@ -130,7 +136,7 @@ const NftCard = (props: NftCardProps) => {
         </p>
         <TagsInput value={tags} onChange={handleTagChange} />
       </div>
-      <VerticalSpacer height={Math.random() * 4} />
+      <VerticalSpacer height={offset / 4} />
     </>
   );
 };
