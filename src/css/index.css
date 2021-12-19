@@ -48,7 +48,7 @@ body {
   background-color: var(--tags-bg);
   /* border: 1px solid #ccc; */
   overflow: hidden;
-  padding-left: 5px;
+  /* padding-left: 5px; */
   padding-top: 5px;
 }
 

@@ -100,7 +100,7 @@ const NftCard = (props: NftCardProps) => {
 
   return (
     <>
-      <VerticalSpacer height={20 + Math.random() * 200} />
+      <VerticalSpacer height={3 + Math.random() * 5} />
       <div
         style={{
           height: props.cardLength * ratio + "px",
@@ -122,21 +122,23 @@ const NftCard = (props: NftCardProps) => {
           innerPercentage={innerPercentage}
         />
       </div>
-      <p className="syne text-4xl text-white ml-3 mb-1">{props.nft.name}</p>
-      <p className="anaheim text-xl text-white ml-3 mb-3 font-semibold">
-        Owner:{" "}
-        {props.nft.owner.slice(0, 10) +
-          "..." +
-          props.nft.owner.slice(props.nft.owner.length - 6)}
-      </p>
-      <TagsInput value={tags} onChange={handleTagChange} />
-      <VerticalSpacer height={Math.random() * 400} />
+      <div className="ml-10">
+        <p className="syne text-4xl text-white mb-1">{props.nft.name}</p>
+        <p className="anaheim text-xl text-white mb-3 font-semibold">
+          Owner:{" "}
+          {props.nft.owner.slice(0, 10) +
+            "..." +
+            props.nft.owner.slice(props.nft.owner.length - 6)}
+        </p>
+        <TagsInput value={tags} onChange={handleTagChange} />
+      </div>
+      <VerticalSpacer height={Math.random() * 4} />
     </>
   );
 };
 
 const VerticalSpacer = (props: { height: number }) => {
-  return <div style={{ height: props.height + "px" }} />;
+  return <div style={{ height: props.height + "em" }} />;
 };
 
 const FallbackContent = (props: {
@@ -161,9 +163,7 @@ const FallbackContent = (props: {
     ? {
         transform: "translateX(4px)",
         color: "white",
-        // position: "relative",
         width: props.innerPercentage.w + "%",
-        // height: props.innerPercentage.h + "%",
       }
     : {};
 
@@ -193,11 +193,13 @@ const FallbackContent = (props: {
         <img src={Spinner} alt="Loading" />
       ) : videoFailed ? (
         <div>
+          {/* 
           <audio
             style={contentStyle}
             src={props.src}
             onError={(_e) => handleErrorAudio}
-          />
+          /> */}
+          <img src={Spinner} alt="Loading" />
         </div>
       ) : imageFailed ? (
         props.nested ? (

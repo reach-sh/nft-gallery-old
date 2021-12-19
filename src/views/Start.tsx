@@ -3,9 +3,15 @@ import { VIEWS } from "../constants";
 import AppContext from "../context/appContext";
 
 import Reach from "../assets/Reach.svg";
+import { getStorageItem, setStorageItem } from "../lib/helpers";
 
 const Start = () => {
   const appContext = useContext(AppContext);
+
+  const handleSelectChange = (e: any) => {
+    setStorageItem("test", e.target.value, '"main"');
+    window.location.reload();
+  };
 
   const goToLib = () => {
     appContext.set("view", VIEWS.COLLECTION);
@@ -31,13 +37,24 @@ const Start = () => {
         </h1>
         <div className="flex flex-row justify-center mx-4 gap-8">
           <button
-            className="p-2 md:p-3 lg:p-3 xl:p-4 rounded-sm text-white bg-indigo-500 hover:bg-indigo-400 transition-colors"
+            className="p-2 md:p-3 lg:p-3 xl:p-4 text-white bg-indigo-500 hover:bg-indigo-400 transition-colors"
             style={{ fontFamily: "'Syne', sans-serif" }}
             onClick={goToLib}
           >
             Go To My Collection
           </button>
         </div>
+
+        <select
+          className="absolute right-8 top-8 py-2 px-4 bg-indigo-500 syne text-white border-none"
+          name="net-dropdown"
+          id="net-dropdown"
+          onChange={handleSelectChange}
+          value={getStorageItem("test", '"main"')}
+        >
+          <option value="main">MainNet</option>
+          <option value="test">TestNet</option>
+        </select>
       </div>
     </div>
   );

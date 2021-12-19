@@ -17,6 +17,8 @@ function useNfts(defs: UseNftDefaults) {
     undefined
   );
 
+  const nftIteratorRef = useRef<NFTIterator | undefined>(undefined);
+
   const [nfts, _setNfts] = useState<NFT[]>([]);
   const nftsRef = useRef<NFT[]>(nfts);
   const setNfts = (data: NFT[]) => {
@@ -26,7 +28,11 @@ function useNfts(defs: UseNftDefaults) {
 
   const handleScroll = (e: any) => {
     const scrollHeight = window.innerHeight + window.scrollY;
-    if (scrollHeight >= document.body.offsetHeight && !nftIterator?.isDone()) {
+    if (
+      scrollHeight >= document.body.offsetHeight &&
+      nftIteratorRef.current != undefined &&
+      !nftIteratorRef.current.isDone()
+    ) {
       setDone(false);
       setUpdate(true);
     }
@@ -39,14 +45,16 @@ function useNfts(defs: UseNftDefaults) {
         ownerAsaIds.push(await getAssetIdsOfAddress(account));
 
       const nftIter = getNFTIterator(ownerAsaIds, 5);
+      nftIteratorRef.current = nftIter;
       setNftIterator(nftIter);
     };
 
-    loadIterator();
-
-    setNfts([]);
-    setDone(false);
-    setUpdate(true);
+    if (nftIteratorRef.current) nftIteratorRef.current.reset();
+    loadIterator().then(() => {
+      setNfts([]);
+      setDone(false);
+      setUpdate(true);
+    });
 
     window.addEventListener("scroll", handleScroll);
     return () => {
@@ -59,7 +67,8 @@ function useNfts(defs: UseNftDefaults) {
   useEffect(() => {
     const updateNfts = async () => {
       setDone(false);
-      setNfts([...nftsRef.current, ...(await nftIterator!.next())]);
+      const x = [...nftsRef.current, ...(await nftIteratorRef.current!.next())];
+      setNfts(x);
 
       setDone(true);
       setUpdate(false);

@@ -64,12 +64,12 @@ export class NFTIterator {
     const results = [];
 
     for (let i = 0; i < this.iterSize; i++) {
-      if (this.counter + i >= this.idList.length) {
+      if (this.counter >= this.idList.length) {
         this.done = true;
         break;
       }
 
-      const asaIdx = this.counter++ + i;
+      const asaIdx = this.counter++;
       const { owner, id } = this.idList[asaIdx];
 
       const asa = await getASAById(id);
@@ -77,6 +77,10 @@ export class NFTIterator {
     }
 
     return results;
+  }
+
+  reset() {
+    this.counter = 0;
   }
 }
 

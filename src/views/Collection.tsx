@@ -67,9 +67,8 @@ const Collection = () => {
         className="flex mt-10"
         columnClassName="mx-2 my-4"
       >
-        {nftsRef.current
-          .filter((el) => willItemRender(el.assetId))
-          .map((el) => {
+        {nftsRef.current.length > 0 ? (
+          nftsRef.current.map((el) => {
             return willItemRender(el.assetId) ? (
               <>
                 <NftCard
@@ -81,7 +80,17 @@ const Collection = () => {
             ) : (
               <div></div>
             );
-          })}
+          })
+        ) : done ? (
+          <p
+            className="absolute text-white anaheim text-3xl text-center font-semibold"
+            style={{ left: "46%" }}
+          >
+            Nothing to show
+          </p>
+        ) : (
+          <div />
+        )}
       </Masonry>
 
       {!done && (
@@ -133,8 +142,8 @@ const LibraryTopBar = (props: LibraryTopBarProps) => {
         <div className="mr-20">
           <button
             onClick={props.showAddrModal}
-            className="inline syne mr-8 bg-indigo-500 hover:bg-indigo-400 
-          transition-colors bg-opacity-60 px-3 py-2 rounded-sm text-white"
+            className="inline syne mr-16 bg-indigo-500 hover:bg-indigo-400
+          transition-colors bg-opacity-60 px-3 py-2 text-white"
           >
             Manage addresses
           </button>
@@ -178,7 +187,6 @@ const FilterTags = (props: FilterTabProps) => {
     <div
       style={{
         overflow: "hidden",
-        backgroundColor: "red",
       }}
     >
       <div className="py-3 bg-white flex flex-col ">
@@ -210,8 +218,8 @@ const TagChip = (props: { selected: boolean; tag: string; fn: () => void }) => {
       onClick={props.fn}
       className={
         props.selected
-          ? "syne mr-3 rounded-lg px-3 py-1 text-white bg-gray-800"
-          : "syne mr-3 rounded-lg px-3 py-1 text-white bg-indigo-700"
+          ? "syne mr-3 px-3 py-1 text-white bg-gray-800"
+          : "syne mr-3 px-3 py-1 text-white bg-indigo-700 hover:bg-indigo-600"
       }
     >
       {props.tag}

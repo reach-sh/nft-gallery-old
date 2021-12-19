@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { setStorageItem } from "../lib/helpers";
+import { isValidAddress } from "algosdk";
 
 type AddressModalProps = {
   addresses: string[];
@@ -18,9 +19,17 @@ const AddressModal = (props: AddressModalProps) => {
     e.stopPropagation();
   };
 
-  const addAddress = () => {
-    const newAccs = [...props.addresses, curAddr];
+  const addAddress = (e: any) => {
+    e.preventDefault();
 
+    if (!isValidAddress(curAddr)) {
+      setCurAddr("");
+      return;
+    }
+
+    const newAccs = [...new Set([...props.addresses, curAddr])];
+
+    setCurAddr("");
     setStorageItem("accounts", newAccs, []);
     props.setAddresses(newAccs);
   };
@@ -50,20 +59,28 @@ const AddressModal = (props: AddressModalProps) => {
         <div className="py-5" />
 
         <span className="flex" style={{ width: "70%" }}>
-          <input
-            style={{ width: "80% " }}
-            className="bg-black border-white border-4 text-white w-full pl-5"
-            onChange={handleAddrChange}
-            placeholder="Enter address"
-            type="text"
-          />
-          <button
-            style={{ width: "20%" }}
-            className="bg-gray-400 hover:text-white text-black border-none syne align-top"
-            onClick={addAddress}
-          >
-            Enter
-          </button>
+          <form action="" className="flex w-full">
+            <input
+              style={{ width: "80% " }}
+              className="bg-black border-white border-4 text-white w-full pl-5"
+              value={curAddr}
+              onChange={handleAddrChange}
+              placeholder="Enter address"
+              type="text"
+            />
+            <button
+              style={{ width: "20%" }}
+              className="bg-gray-400 hover:text-white text-black border-none syne align-top"
+              onClick={addAddress}
+            >
+              Enter
+            </button>
+            <input
+              type="submit"
+              style={{ display: "none", position: "absolute" }}
+              tabIndex={-1}
+            />
+          </form>
         </span>
 
         <div className="py-5" />
@@ -72,7 +89,7 @@ const AddressModal = (props: AddressModalProps) => {
           {props.addresses.map((address) => {
             return (
               <div
-                className="bg-gray-900 text-white anaheim text-center text-xl transition-colors hover:bg-red-700 w-full"
+                className="bg-indigo-400 bg-opacity-40 text-white anaheim text-center text-xl transition-colors hover:bg-red-700 w-full"
                 onClick={() => {
                   rmAddress(address);
                 }}
