@@ -97,7 +97,7 @@ const NftCard = (props: NftCardProps) => {
   }, [imgUrl]);
 
   useEffect(() => {
-    setOffset(3 + Math.random() * 20);
+    setOffset(3 + Math.random() * 9);
   }, [setOffset]);
 
   const { frame, ratio, innerPercentage } = selectFrame(sizeRatio);
