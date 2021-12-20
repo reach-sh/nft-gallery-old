@@ -2,7 +2,8 @@ import { useContext } from "react";
 import { VIEWS } from "../constants";
 import AppContext from "../context/appContext";
 
-import Reach from "../assets/Reach.svg";
+// import Reach from "../assets/Reach.svg";
+import ReachDark from "../assets/ReachBlack.png";
 import { getStorageItem, setStorageItem } from "../lib/helpers";
 
 const Start = () => {
@@ -19,25 +20,19 @@ const Start = () => {
 
   return (
     <div
-      className="grid justify-items-center place-items-center h-screen w-screen"
-      style={{ backgroundColor: "#171717" }}
+      className="grid justify-items-center place-items-center h-screen w-screen bg-gradient-anim"
+      // style={{ backgroundColor: "#171717" }}
     >
-      <img
-        style={{ position: "absolute", left: "48.5%" }}
-        src={Reach}
-        alt="Reach Logo"
-        className="bottom-12 w-16"
-      />
+      <div className="absolute self-center bottom-12">
+        <img src={ReachDark} alt="Reach Logo" className="w-16 shadowed" />
+      </div>
       <div>
-        <h1
-          className="text-6xl md:text-7xl lg:text-8xl xl:text-9xl mb-20 font-bold text-center text-white"
-          style={{ fontFamily: "'Syne', sans-serif" }}
-        >
+        <h1 className="text-6xl md:text-7xl lg:text-8xl xl:text-9xl mb-20 font-bold drop-shadow-lg text-center syne">
           ga//ery
         </h1>
         <div className="flex flex-row justify-center mx-4 gap-8">
           <button
-            className="p-2 md:p-3 lg:p-3 xl:p-4 text-white bg-indigo-500 hover:bg-indigo-400 transition-colors"
+            className="p-2 md:p-3 lg:p-3 xl:p-4 text-white bg-black hover:bg-gray-900 transition-colors"
             style={{ fontFamily: "'Syne', sans-serif" }}
             onClick={goToLib}
           >
@@ -46,7 +41,7 @@ const Start = () => {
         </div>
 
         <select
-          className="absolute right-8 top-8 py-2 px-4 bg-indigo-500 syne text-white border-none"
+          className="absolute right-8 top-8 py-2 px-4 bg-black syne text-white border-none"
           name="net-dropdown"
           id="net-dropdown"
           onChange={handleSelectChange}

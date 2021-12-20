@@ -60,20 +60,6 @@ body {
   border-color: #a5d24a;
 }
 
-/* .react-tagsinput-tag {
-  background-color: #cde69c;
-  border-radius: 2px;
-  border: 1px solid #white;
-  color: #638421;
-  display: inline-block;
-  font-family: sans-serif;
-  font-size: 13px;
-  font-weight: 400;
-  margin-bottom: 5px;
-  margin-right: 5px;
-  padding: 5px;
-} */
-
 .react-tagsinput-tag {
   background-color: transparent;
   border: 1px solid white;
@@ -140,4 +126,31 @@ body {
   100% {
     opacity: 1;
   }
+}
+
+/* https://codepen.io/P1N2O/pen/pyBNzX */
+.bg-gradient-anim {
+  background: linear-gradient(-25deg, #ee7752, #e73c7e, #23a6d5, #23d5ab);
+  background-size: 400% 400%;
+  animation: gradient 15s ease infinite;
+  height: 100vh;
+}
+
+@keyframes gradient {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.shadowed {
+  -webkit-filter: drop-shadow(24px 24px 25px rgba(0, 0, 0, #000));
+  filter: url(#drop-shadow);
+  -ms-filter: "progid:DXImageTransform.Microsoft.Dropshadow(OffX=24, OffY=24, Color='#444')";
+  filter: "progid:DXImageTransform.Microsoft.Dropshadow(OffX=24, OffY=24, Color='#444')";
 }
