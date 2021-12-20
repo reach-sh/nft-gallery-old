@@ -16,7 +16,7 @@ const Collection = () => {
   const appContext = useContext(AppContext);
 
   const [showAddrModal, setShowAddrModal] = useState<boolean>(
-    getStorageItem("accs", "[]").length === 0
+    getStorageItem("accounts", "[]").length === 0
   );
 
   const { accs, setAccs, nftsRef, done } = useNfts({
