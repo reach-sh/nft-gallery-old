@@ -7,6 +7,10 @@
   --tags-bg: transparent;
 }
 
+html {
+  overflow-x: hidden;
+}
+
 body {
   background-color: #171717;
 }
