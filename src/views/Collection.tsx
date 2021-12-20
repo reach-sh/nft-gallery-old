@@ -49,10 +49,7 @@ const Collection = () => {
   };
 
   return (
-    <div
-      className="h-full w-screen overflow-y-scroll"
-      style={{ backgroundColor: "#171717" }}
-    >
+    <div className="h-full w-screen" style={{ backgroundColor: "#171717" }}>
       <LibraryTopBar
         goToStart={goToStart}
         showAddrModal={() => {
