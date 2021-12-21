@@ -15,7 +15,11 @@ const AppProvider = (props: any) => {
     });
   };
 
-  return <AppContext.Provider value={{ settings, set }}>{props.children}</AppContext.Provider>;
+  return (
+    <AppContext.Provider value={{ settings, set }}>
+      {props.children}
+    </AppContext.Provider>
+  );
 };
 
 export default AppContext;

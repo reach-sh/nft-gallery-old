@@ -11,6 +11,7 @@ type FileDimensions = {
   width: number;
 };
 
+// TODO: There's a double check of file type
 const getDimensionsOf = async (url: string): Promise<FileDimensions> => {
   return await new Promise((resolve) => {
     const img = new Image();
@@ -52,7 +53,6 @@ const setDiff = (a: Set<string>, b: Set<string>) => {
 type NftCardProps = {
   nft: NFT;
   cardLength: number;
-  // tags: string[];
 };
 const NftCard = (props: NftCardProps) => {
   // Initialize tags with what's inside local storage
@@ -61,6 +61,7 @@ const NftCard = (props: NftCardProps) => {
   );
 
   const [offset, setOffset] = useState<number>(0);
+  const [loadFailed, setLoadFailed] = useState<boolean>(false);
 
   const handleTagChange = (newTags: string[]) => {
     const oldSet = new Set(tags);
@@ -101,27 +102,25 @@ const NftCard = (props: NftCardProps) => {
   }, [setOffset]);
 
   const { frame, ratio, innerPercentage } = selectFrame(sizeRatio);
+  const frameStyle: CSSProperties = {
+    height: props.cardLength * ratio + "px",
+    margin: "10px",
+    display: "flex",
+    backgroundImage: `url(${frame})`,
+    backgroundRepeat: "no-repeat",
+    backgroundSize: `${props.cardLength - 30}px ${props.cardLength * ratio}px`,
+    justifyContent: "center",
+    alignItems: "center",
+  };
 
-  return (
+  return !loadFailed ? (
     <>
       <VerticalSpacer height={offset} />
-      <div
-        style={{
-          height: props.cardLength * ratio + "px",
-          margin: "10px",
-          display: "flex",
-          backgroundImage: `url(${frame})`,
-          backgroundRepeat: "no-repeat",
-          backgroundSize: `${props.cardLength - 30}px ${
-            props.cardLength * ratio
-          }px`,
-          justifyContent: "center",
-          alignItems: "center",
-        }}
-      >
+      <div style={frameStyle}>
         <FallbackContent
           src={imgUrl}
           nested={false}
+          setLoadFailed={setLoadFailed}
           extraStyle="syne"
           innerPercentage={innerPercentage}
         />
@@ -138,6 +137,8 @@ const NftCard = (props: NftCardProps) => {
       </div>
       <VerticalSpacer height={offset / 4} />
     </>
+  ) : (
+    <div />
   );
 };
 
@@ -148,6 +149,7 @@ const VerticalSpacer = (props: { height: number }) => {
 const FallbackContent = (props: {
   src: string;
   nested: boolean;
+  setLoadFailed?: Function;
   extraStyle?: string;
   innerPercentage?: { w: number; h: number };
 }) => {
@@ -184,6 +186,8 @@ const FallbackContent = (props: {
   const handleErrorVideo = () => {
     console.log("Video failed for", props.src);
     setVideoFailed(true);
+
+    if (props.setLoadFailed) props.setLoadFailed(true);
   };
 
   // TODO: For later

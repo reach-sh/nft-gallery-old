@@ -2,6 +2,7 @@ import { config as conf } from "./config";
 import { getFromIPFS } from "./ipfs";
 
 const ARC3_SUFFIX = "@arc3";
+const ARC3_URL_SUFFIX = "#arc3";
 const METADATA_FILE = "metadata.json";
 
 export function resolveURL(url: string | undefined): string {
@@ -73,7 +74,14 @@ export class NFT {
   }
 
   static isArc3(token: any): boolean {
-    return token?.params?.name && token?.params?.name.endsWith(ARC3_SUFFIX);
+    const name: string = token?.params?.name;
+    const url: string = token?.params?.url;
+
+    console.log(token.params);
+
+    if (!name || !url) return false;
+
+    return name.endsWith(ARC3_SUFFIX) || url.endsWith(ARC3_URL_SUFFIX);
   }
 }
 

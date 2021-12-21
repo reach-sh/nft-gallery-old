@@ -3,7 +3,7 @@ import { VIEWS } from "./constants";
 import AppContext from "./context/appContext";
 
 import Start from "./views/Start";
-import Test from "./components/Test";
+import Test from "./views/Test";
 import Collection from "./views/Collection";
 
 function App() {

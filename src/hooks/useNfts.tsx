@@ -45,6 +45,13 @@ function useNfts(defs: UseNftDefaults) {
       for (let account of accs)
         ownerAsaIds.push(await getAssetIdsOfAddress(account));
 
+      // const ownerAsaIds = [
+      //   {
+      //     owner: "BWBJ53OAF4RIJRH732IYDKFM6POSKPQNFPBSXRA7FEWSALN4NJAJMUBD6M",
+      //     assetIds: [463774589, 470190462],
+      //   },
+      // ];
+
       const nftIter = getNFTIterator(ownerAsaIds, 5);
       nftIteratorRef.current = nftIter;
       setNftIterator(nftIter);
