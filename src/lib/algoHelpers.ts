@@ -1,5 +1,6 @@
 import algosdk from "algosdk";
 import { config as conf } from "./config";
+import { getStorageItem } from "./helpers";
 import { NFT } from "./nft";
 
 const client = new algosdk.Algodv2("", conf.algod, "");
@@ -16,7 +17,25 @@ export const getAssetIdsOfAddress = async (
 
   // Filter the assets account has
   const assetIds = Object.keys(results.assets)
-    .filter((id: any) => results["assets"][id]["amount"] > 0)
+    .filter((id: any) => {
+      const asset = results["assets"][id];
+
+      if (asset["amount"] <= 0) return false;
+
+      if (getStorageItem("blacklisted", "[]").includes(asset["asset-id"]))
+        return false;
+
+      // Filter URLs that wouldn't store image info, I'll change this later
+      // if (
+      //   asset["url"] === undefined ||
+      //   asset["url"].match(urlMatcher).length === 0
+      // ) {
+      //   console.log(asset);
+      //   return false;
+      // }
+
+      return true;
+    })
     .map((id: any) => results["assets"][id]["asset-id"]);
 
   return {

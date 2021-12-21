@@ -63,6 +63,16 @@ const NftCard = (props: NftCardProps) => {
   const [offset, setOffset] = useState<number>(0);
   const [loadFailed, setLoadFailed] = useState<boolean>(false);
 
+  const addToBlackList = () => {
+    setStorageItem(
+      "blacklisted",
+      [...getStorageItem("blacklisted", "[]"), props.nft.assetId],
+      []
+    );
+
+    setLoadFailed(true);
+  };
+
   const handleTagChange = (newTags: string[]) => {
     const oldSet = new Set(tags);
     const newSet = new Set(newTags);
@@ -94,7 +104,14 @@ const NftCard = (props: NftCardProps) => {
       setSizeRatio(height / width);
     }
 
-    getRatio();
+    const urlMatcher = /^(.*)\.(com|net|org|io|xyz)$/;
+    console.log(imgUrl, imgUrl.match(urlMatcher));
+    if (imgUrl == null || imgUrl.match(urlMatcher) != null) {
+      console.log(imgUrl);
+      setLoadFailed(true);
+    } else {
+      getRatio();
+    }
   }, [imgUrl]);
 
   useEffect(() => {
@@ -126,13 +143,23 @@ const NftCard = (props: NftCardProps) => {
         />
       </div>
       <div className="ml-10">
-        <p className="syne text-4xl text-white mb-1">{props.nft.name}</p>
-        <p className="anaheim text-xl text-white mb-3 font-semibold">
-          Owner:{" "}
-          {props.nft.owner.slice(0, 10) +
-            "..." +
-            props.nft.owner.slice(props.nft.owner.length - 6)}
-        </p>
+        <p className="syne text-4xl text-white mb-1 inline">{props.nft.name}</p>
+
+        <div className="flex mb-3">
+          <p className="anaheim text-xl text-white font-semibold">
+            Owner:{" "}
+            {props.nft.owner.slice(0, 10) +
+              "..." +
+              props.nft.owner.slice(props.nft.owner.length - 6)}
+          </p>
+
+          <button
+            className="mx-4 text-white hover:text-red-700"
+            onClick={addToBlackList}
+          >
+            <span className="material-icons align-top">clear</span>
+          </button>
+        </div>
         <TagsInput value={tags} onChange={handleTagChange} />
       </div>
       <VerticalSpacer height={offset / 4} />

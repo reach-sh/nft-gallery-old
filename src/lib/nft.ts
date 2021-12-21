@@ -77,8 +77,6 @@ export class NFT {
     const name: string = token?.params?.name;
     const url: string = token?.params?.url;
 
-    console.log(token.params);
-
     if (!name || !url) return false;
 
     return name.endsWith(ARC3_SUFFIX) || url.endsWith(ARC3_URL_SUFFIX);

@@ -66,8 +66,6 @@ const Collection = () => {
       >
         {nftsRef.current.length > 0 ? (
           nftsRef.current.map((el) => {
-            console.log(el.assetId, el.name, el.arc3);
-
             return willItemRender(el.assetId) ? (
               <>
                 <NftCard
